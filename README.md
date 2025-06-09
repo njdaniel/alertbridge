@@ -44,6 +44,15 @@ make test
 make docker
 ```
 
+## Testing
+
+Unit tests cover HMAC verification, cooldown enforcement, and HTTP handler
+responses. Execute the suite with:
+
+```bash
+make test
+```
+
 ## Running
 
 ```bash

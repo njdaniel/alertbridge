@@ -111,7 +111,7 @@ func (g *Guard) checkPnL(bot string) error {
 		return fmt.Errorf("invalid PnL value: %w", err)
 	}
 
-	if g.pnlMax != 0 && pnl > g.pnlMax {
+	if g.pnlMaxSet && pnl > g.pnlMax {
 		return fmt.Errorf("pnl %.2f exceeds max %.2f", pnl, g.pnlMax)
 	}
 

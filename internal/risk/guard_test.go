@@ -7,9 +7,9 @@ import (
 )
 
 func TestGuardCooldown(t *testing.T) {
-	os.Unsetenv("PROM_URL")
-	os.Unsetenv("PNL_MAX")
-	os.Unsetenv("PNL_MIN")
+	t.Setenv("PROM_URL", "")
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("1")
 	if err := g.Check("bot"); err != nil {

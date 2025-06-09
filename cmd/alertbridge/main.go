@@ -72,7 +72,7 @@ func main() {
 		go func() {
 			<-shutdownCtx.Done()
 			if shutdownCtx.Err() == context.DeadlineExceeded {
-				log.Fatal("graceful shutdown timed out.. forcing exit.")
+				log.Fatal("graceful shutdown timed out... forcing exit.")
 			}
 		}()
 

@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -42,9 +44,27 @@ func NewHookHandler(
 }
 
 func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
+	// Read request body
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.logger.Error("failed to read request", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Verify HMAC if secret is set
+	if h.hmacVerifier.IsEnabled() {
+		signature := r.Header.Get("X-TV-Signature")
+		if !h.hmacVerifier.Verify(bytes.NewReader(bodyBytes), signature) {
+			h.logger.Error("invalid signature")
+			http.Error(w, "Invalid signature", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	// Parse request body
 	var alert AlertRequest
-	if err := json.NewDecoder(r.Body).Decode(&alert); err != nil {
+	if err := json.Unmarshal(bodyBytes, &alert); err != nil {
 		h.logger.Error("failed to decode request", zap.Error(err))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -62,16 +82,6 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("invalid side", zap.String("side", alert.Side))
 		http.Error(w, "Invalid side", http.StatusBadRequest)
 		return
-	}
-
-	// Verify HMAC if secret is set
-	if h.hmacVerifier.IsEnabled() {
-		signature := r.Header.Get("X-TV-Signature")
-		if !h.hmacVerifier.Verify(r.Body, signature) {
-			h.logger.Error("invalid signature")
-			http.Error(w, "Invalid signature", http.StatusUnauthorized)
-			return
-		}
 	}
 
 	// Check risk rules

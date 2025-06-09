@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -55,7 +54,7 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Verify HMAC if secret is set
 	if h.hmacVerifier.IsEnabled() {
 		signature := r.Header.Get("X-TV-Signature")
-		if !h.hmacVerifier.Verify(bytes.NewReader(bodyBytes), signature) {
+		if !h.hmacVerifier.Verify(bodyBytes, signature) {
 			h.logger.Error("invalid signature")
 			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return

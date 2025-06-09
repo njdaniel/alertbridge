@@ -1,9 +1,8 @@
 package risk
 
 import (
-	"os"
-	"testing"
-	"time"
+    "testing"
+    "time"
 )
 
 func TestGuardCooldown(t *testing.T) {

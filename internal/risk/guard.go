@@ -16,17 +16,22 @@ type Guard struct {
 	lastAlert   map[string]time.Time
 	mu          sync.RWMutex
 
-	promURL string
-	pnlMax  float64
-	pnlMin  float64
+	promURL   string
+	pnlMax    float64
+	pnlMin    float64
+	pnlMaxSet bool
 }
 
 func NewGuard(cooldownSec string) *Guard {
 	sec, _ := strconv.Atoi(cooldownSec)
 	promURL := os.Getenv("PROM_URL")
 
-	var pnlMax float64
+	var (
+		pnlMax    float64
+		pnlMaxSet bool
+	)
 	if v, ok := os.LookupEnv("PNL_MAX"); ok {
+		pnlMaxSet = true
 		var err error
 		pnlMax, err = strconv.ParseFloat(v, 64)
 		if err != nil {
@@ -50,6 +55,7 @@ func NewGuard(cooldownSec string) *Guard {
 		promURL:     promURL,
 		pnlMax:      pnlMax,
 		pnlMin:      pnlMin,
+		pnlMaxSet:   pnlMaxSet,
 	}
 }
 

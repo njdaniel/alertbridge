@@ -4,7 +4,7 @@ build:
 	go build -o alertbridge ./cmd/alertbridge
 
 test:
-	go test ./...
+        go test -v ./...
 
 docker:
 	docker build -t alertbridge .

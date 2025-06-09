@@ -85,6 +85,9 @@ func (g *Guard) checkPnL(bot string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Prometheus query failed with status code %d for endpoint %s", resp.StatusCode, endpoint)
+	}
 	var pr struct {
 		Data struct {
 			Result []struct {

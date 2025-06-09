@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/alpacahq/alpaca-trade-api-go/v3/alpaca"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -30,10 +31,16 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 	// Convert side to Alpaca side
 	alpacaSide := alpaca.Side(side)
 
+	// Parse quantity
+	qtyDec, err := decimal.NewFromString(qty)
+	if err != nil {
+		return nil, fmt.Errorf("invalid qty: %w", err)
+	}
+
 	// Create order request
 	orderRequest := alpaca.PlaceOrderRequest{
 		Symbol:        symbol,
-		Qty:           qty,
+		Qty:           &qtyDec,
 		Side:          alpacaSide,
 		Type:          alpaca.Market,
 		TimeInForce:   alpaca.Day,

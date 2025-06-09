@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"io"
 )
 
 type HMACVerifier struct {
@@ -21,15 +20,9 @@ func (v *HMACVerifier) IsEnabled() bool {
 	return v.secret != ""
 }
 
-func (v *HMACVerifier) Verify(body io.Reader, signature string) bool {
+func (v *HMACVerifier) Verify(bodyBytes []byte, signature string) bool {
 	if !v.IsEnabled() {
 		return true
-	}
-
-	// Read body
-	bodyBytes, err := io.ReadAll(body)
-	if err != nil {
-		return false
 	}
 
 	// Calculate HMAC

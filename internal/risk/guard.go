@@ -27,12 +27,22 @@ func NewGuard(cooldownSec string) *Guard {
 
 	var pnlMax float64
 	if v, ok := os.LookupEnv("PNL_MAX"); ok {
-		pnlMax, _ = strconv.ParseFloat(v, 64)
+		var err error
+		pnlMax, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			fmt.Printf("Warning: Invalid PNL_MAX value '%s', using default 0.0. Error: %v\n", v, err)
+			pnlMax = 0.0
+		}
 	}
 
 	var pnlMin float64
 	if v, ok := os.LookupEnv("PNL_MIN"); ok {
-		pnlMin, _ = strconv.ParseFloat(v, 64)
+		var err error
+		pnlMin, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			fmt.Printf("Warning: Invalid PNL_MIN value '%s', using default 0.0. Error: %v\n", v, err)
+			pnlMin = 0.0
+		}
 	}
 	return &Guard{
 		cooldownSec: sec,

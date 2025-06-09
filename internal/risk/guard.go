@@ -1,7 +1,11 @@
 package risk
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -11,13 +15,31 @@ type Guard struct {
 	cooldownSec int
 	lastAlert   map[string]time.Time
 	mu          sync.RWMutex
+
+	promURL string
+	pnlMax  float64
+	pnlMin  float64
 }
 
 func NewGuard(cooldownSec string) *Guard {
 	sec, _ := strconv.Atoi(cooldownSec)
+	promURL := os.Getenv("PROM_URL")
+
+	var pnlMax float64
+	if v, ok := os.LookupEnv("PNL_MAX"); ok {
+		pnlMax, _ = strconv.ParseFloat(v, 64)
+	}
+
+	var pnlMin float64
+	if v, ok := os.LookupEnv("PNL_MIN"); ok {
+		pnlMin, _ = strconv.ParseFloat(v, 64)
+	}
 	return &Guard{
 		cooldownSec: sec,
 		lastAlert:   make(map[string]time.Time),
+		promURL:     promURL,
+		pnlMax:      pnlMax,
+		pnlMin:      pnlMin,
 	}
 }
 
@@ -49,8 +71,53 @@ func (g *Guard) Check(bot string) error {
 }
 
 func (g *Guard) checkPnL(bot string) error {
-	// TODO: Implement Prometheus PnL check
-	// This would require a Prometheus client to query the metrics
-	// For now, we'll skip this check
+	if g.promURL == "" {
+		// Prometheus not configured
+		return nil
+	}
+
+	query := fmt.Sprintf("pnl{bot=\"%s\"}", bot)
+	endpoint := fmt.Sprintf("%s/api/v1/query?query=%s", g.promURL, url.QueryEscape(query))
+
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return fmt.Errorf("failed to query Prometheus: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var pr struct {
+		Data struct {
+			Result []struct {
+				Value []interface{} `json:"value"`
+			} `json:"result"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&pr); err != nil {
+		return fmt.Errorf("failed to decode Prometheus response: %w", err)
+	}
+
+	if len(pr.Data.Result) == 0 || len(pr.Data.Result[0].Value) < 2 {
+		return nil
+	}
+
+	valueStr, ok := pr.Data.Result[0].Value[1].(string)
+	if !ok {
+		return fmt.Errorf("unexpected PnL value type")
+	}
+
+	pnl, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return fmt.Errorf("invalid PnL value: %w", err)
+	}
+
+	if g.pnlMax != 0 && pnl > g.pnlMax {
+		return fmt.Errorf("pnl %.2f exceeds max %.2f", pnl, g.pnlMax)
+	}
+
+	if g.pnlMin != 0 && pnl < g.pnlMin {
+		return fmt.Errorf("pnl %.2f below min %.2f", pnl, g.pnlMin)
+	}
+
 	return nil
 }

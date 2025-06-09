@@ -27,6 +27,9 @@ Environment variables:
 - `PORT`: Server port (default: 3000)
 - `TV_SECRET`: TradingView webhook secret (optional)
 - `COOLDOWN_SEC`: Cooldown period in seconds (optional)
+- `PROM_URL`: Prometheus base URL for PnL checks (optional)
+- `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
+- `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
 
 ## Building
 

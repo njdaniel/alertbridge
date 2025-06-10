@@ -9,97 +9,68 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
-	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/handler"
 	"github.com/njdaniel/alertbridge/internal/risk"
 )
 
 func main() {
 	// Initialize logger
-	logger, _ := zap.NewProduction()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatalf("failed to create logger: %v", err)
+	}
 	defer logger.Sync()
 
-	// Load configuration
-	port := getEnv("PORT", "3000")
-	alpacaKey := getEnv("ALP_KEY", "")
-	alpacaSecret := getEnv("ALP_SECRET", "")
-	alpacaBase := getEnv("ALP_BASE", "https://paper-api.alpaca.markets")
-	tvSecret := getEnv("TV_SECRET", "")
-	cooldownSec := getEnv("COOLDOWN_SEC", "0")
+	// Get environment variables
+	alpacaKey := os.Getenv("ALP_KEY")
+	alpacaSecret := os.Getenv("ALP_SECRET")
+	alpacaBase := os.Getenv("ALP_BASE")
+	if alpacaBase == "" {
+		alpacaBase = "https://paper-api.alpaca.markets"
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	cooldownSec := os.Getenv("COOLDOWN_SEC")
 
-	// Initialize components
+	// Initialize Alpaca client
 	alpacaClient := adapter.NewAlpacaClient(alpacaKey, alpacaSecret, alpacaBase)
 	alpacaClient.SetLogger(logger)
-	hmacVerifier := auth.NewHMACVerifier(tvSecret)
+
+	// Initialize risk guard
 	riskGuard := risk.NewGuard(cooldownSec)
 
-	// Setup router
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	// Initialize handlers
-	hookHandler := handler.NewHookHandler(logger, alpacaClient, hmacVerifier, riskGuard)
-
-	// Routes
-	r.Post("/hook", hookHandler.Handle)
-	r.Get("/metrics", promhttp.Handler().ServeHTTP)
+	// Initialize handler
+	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard)
 
 	// Create server
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: r,
+		Handler: hookHandler,
 	}
 
-	// Server run context
-	serverCtx, serverStopCtx := context.WithCancel(context.Background())
-
-	// Listen for syscall signals for process to interrupt/quit
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	// Start server in a goroutine
 	go func() {
-		<-sig
-
-		// Shutdown signal with grace period of 30 seconds
-		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
-		defer cancel()
-
-		go func() {
-			<-shutdownCtx.Done()
-			if shutdownCtx.Err() == context.DeadlineExceeded {
-				log.Fatal("graceful shutdown timed out... forcing exit.")
-			}
-		}()
-
-		// Trigger graceful shutdown
-		err := srv.Shutdown(shutdownCtx)
-		if err != nil {
-			log.Fatal(err)
+		logger.Info("starting server", zap.String("port", port))
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatal("failed to start server", zap.Error(err))
 		}
-		serverStopCtx()
 	}()
 
-	// Run the server
-	logger.Info("starting server", zap.String("port", port))
-	err := srv.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-	// Wait for server context to be stopped
-	<-serverCtx.Done()
-}
-
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
+	// Graceful shutdown
+	logger.Info("shutting down server")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Fatal("server forced to shutdown", zap.Error(err))
 	}
-	return value
 }

@@ -2,9 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,16 +9,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
-	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/risk"
 )
-
-// sign calculates the TradingView HMAC signature.
-func sign(secret string, body []byte) string {
-	h := hmac.New(sha256.New, []byte(secret))
-	h.Write(body)
-	return hex.EncodeToString(h.Sum(nil))
-}
 
 func newTestAlpacaClient(t *testing.T) *adapter.AlpacaClient {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +24,10 @@ func newTestAlpacaClient(t *testing.T) *adapter.AlpacaClient {
 func TestHandleSuccess(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, auth.NewHMACVerifier("s"), g)
+	h := NewHookHandler(zap.NewNop(), client, g)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
-	req.Header.Set("X-TV-Signature", sign("s", body))
 	rr := httptest.NewRecorder()
 
 	h.Handle(rr, req)
@@ -48,26 +36,10 @@ func TestHandleSuccess(t *testing.T) {
 	}
 }
 
-func TestHandleInvalidSignature(t *testing.T) {
-	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, auth.NewHMACVerifier("s"), g)
-
-	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
-	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
-	req.Header.Set("X-TV-Signature", "bad")
-	rr := httptest.NewRecorder()
-
-	h.Handle(rr, req)
-	if rr.Code != http.StatusUnauthorized {
-		t.Fatalf("expected 401, got %d", rr.Code)
-	}
-}
-
 func TestHandleCooldown(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("1")
-	h := NewHookHandler(zap.NewNop(), client, auth.NewHMACVerifier(""), g)
+	h := NewHookHandler(zap.NewNop(), client, g)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))

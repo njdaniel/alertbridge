@@ -82,12 +82,21 @@ Send POST requests to `/hook` with the following JSON body:
 ```json
 {
   "bot": "strategy1",
-  "symbol": "AAPL",
+  "symbol": "BTCUSD",
   "side": "buy",
   "qty": "10",
   "ts": 1234567890
 }
 ```
+
+Important notes about the webhook format:
+- `symbol` must be in Alpaca's format:
+  - For stocks: Use the standard ticker (e.g., "AAPL", "MSFT")
+  - For crypto: Use the combined format (e.g., "BTCUSD", "ETHUSD")
+  - Do not use forward slashes (e.g., use "BTCUSD" not "BTC/USD")
+- `side` must be either "buy" or "sell"
+- `qty` can be a number or "all"
+- `ts` is optional and should be Unix timestamp in milliseconds
 
 If `TV_SECRET` is set, include the `X-TV-Signature` header with the HMAC-SHA256 signature of the request body.
 

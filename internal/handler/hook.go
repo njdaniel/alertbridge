@@ -46,16 +46,26 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Read request body
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		h.logger.Error("failed to read request", zap.Error(err))
+		h.logger.Error("failed to read request body",
+			zap.Error(err),
+			zap.String("remote_addr", r.RemoteAddr))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
+	// Log incoming request
+	h.logger.Info("received webhook request",
+		zap.String("remote_addr", r.RemoteAddr),
+		zap.String("user_agent", r.UserAgent()),
+		zap.String("body", string(bodyBytes)))
 
 	// Verify HMAC if secret is set
 	if h.hmacVerifier.IsEnabled() {
 		signature := r.Header.Get("X-TV-Signature")
 		if !h.hmacVerifier.Verify(bodyBytes, signature) {
-			h.logger.Error("invalid signature")
+			h.logger.Error("invalid signature",
+				zap.String("remote_addr", r.RemoteAddr),
+				zap.String("signature", signature))
 			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return
 		}
@@ -64,28 +74,38 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	var alert AlertRequest
 	if err := json.Unmarshal(bodyBytes, &alert); err != nil {
-		h.logger.Error("failed to decode request", zap.Error(err))
+		h.logger.Error("failed to decode request",
+			zap.Error(err),
+			zap.String("body", string(bodyBytes)))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	// Validate required fields
 	if alert.Bot == "" || alert.Symbol == "" || alert.Side == "" || alert.Qty == "" {
-		h.logger.Error("missing required fields")
+		h.logger.Error("missing required fields",
+			zap.String("bot", alert.Bot),
+			zap.String("symbol", alert.Symbol),
+			zap.String("side", alert.Side),
+			zap.String("qty", alert.Qty))
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
 
 	// Validate side
 	if alert.Side != "buy" && alert.Side != "sell" {
-		h.logger.Error("invalid side", zap.String("side", alert.Side))
+		h.logger.Error("invalid side",
+			zap.String("side", alert.Side),
+			zap.String("bot", alert.Bot))
 		http.Error(w, "Invalid side", http.StatusBadRequest)
 		return
 	}
 
 	// Check risk rules
 	if err := h.riskGuard.Check(alert.Bot); err != nil {
-		h.logger.Error("risk check failed", zap.Error(err))
+		h.logger.Error("risk check failed",
+			zap.Error(err),
+			zap.String("bot", alert.Bot))
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
@@ -93,13 +113,26 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Create order
 	order, err := h.alpacaClient.CreateOrder(alert.Bot, alert.Symbol, alert.Side, alert.Qty)
 	if err != nil {
-		h.logger.Error("failed to create order", zap.Error(err))
+		h.logger.Error("failed to create order",
+			zap.Error(err),
+			zap.String("bot", alert.Bot),
+			zap.String("symbol", alert.Symbol),
+			zap.String("side", alert.Side),
+			zap.String("qty", alert.Qty))
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
 
 	// Increment metrics
 	metrics.OrderTotal.WithLabelValues(alert.Bot, alert.Side).Inc()
+
+	// Log success
+	h.logger.Info("order created successfully",
+		zap.String("bot", alert.Bot),
+		zap.String("symbol", alert.Symbol),
+		zap.String("side", alert.Side),
+		zap.String("qty", alert.Qty),
+		zap.String("order_id", order.ID))
 
 	// Return success
 	w.Header().Set("Content-Type", "application/json")

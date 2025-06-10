@@ -57,25 +57,39 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 	}
 
 	// Log outgoing request for debugging
-	c.logger.Debug("placing order",
-		zap.String("url", fmt.Sprintf("%s/v2/orders", c.baseURL)),
+	c.logger.Info("placing order",
+		zap.String("baseURL", c.baseURL),
+		zap.String("symbol", symbol),
+		zap.String("side", side),
+		zap.String("qty", qty),
 		zap.Any("request", orderRequest))
 
 	// Place order
 	order, err := c.client.PlaceOrder(orderRequest)
 	if err != nil {
 		if apiErr, ok := err.(*alpaca.APIError); ok {
-			c.logger.Error("alpaca error", zap.Any("request", orderRequest),
+			c.logger.Error("alpaca API error",
+				zap.String("symbol", symbol),
+				zap.String("side", side),
+				zap.String("qty", qty),
 				zap.Int("status", apiErr.StatusCode),
 				zap.Int("code", apiErr.Code),
 				zap.String("message", apiErr.Message),
 				zap.String("body", apiErr.Body))
 		} else {
-			c.logger.Error("failed to place order", zap.Error(err), zap.Any("request", orderRequest))
+			c.logger.Error("failed to place order",
+				zap.String("symbol", symbol),
+				zap.String("side", side),
+				zap.String("qty", qty),
+				zap.Error(err))
 		}
 		return nil, fmt.Errorf("failed to place order: %w", err)
 	}
 
-	c.logger.Debug("order placed", zap.Any("order", order))
+	c.logger.Info("order placed successfully",
+		zap.String("symbol", symbol),
+		zap.String("side", side),
+		zap.String("qty", qty),
+		zap.String("orderID", order.ID))
 	return order, nil
 }

@@ -35,6 +35,7 @@ func main() {
 
 	// Initialize components
 	alpacaClient := adapter.NewAlpacaClient(alpacaKey, alpacaSecret, alpacaBase)
+	alpacaClient.SetLogger(logger)
 	hmacVerifier := auth.NewHMACVerifier(tvSecret)
 	riskGuard := risk.NewGuard(cooldownSec)
 

@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
-	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/risk"
 	"github.com/njdaniel/alertbridge/pkg/metrics"
 )
@@ -24,22 +23,32 @@ type AlertRequest struct {
 type HookHandler struct {
 	logger       *zap.Logger
 	alpacaClient *adapter.AlpacaClient
-	hmacVerifier *auth.HMACVerifier
 	riskGuard    *risk.Guard
 }
 
 func NewHookHandler(
 	logger *zap.Logger,
 	alpacaClient *adapter.AlpacaClient,
-	hmacVerifier *auth.HMACVerifier,
 	riskGuard *risk.Guard,
 ) *HookHandler {
 	return &HookHandler{
 		logger:       logger,
 		alpacaClient: alpacaClient,
-		hmacVerifier: hmacVerifier,
 		riskGuard:    riskGuard,
 	}
+}
+
+// ServeHTTP implements http.Handler interface
+func (h *HookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/hook" {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	h.Handle(w, r)
 }
 
 func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -58,18 +67,6 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		zap.String("remote_addr", r.RemoteAddr),
 		zap.String("user_agent", r.UserAgent()),
 		zap.String("body", string(bodyBytes)))
-
-	// Verify HMAC if secret is set
-	if h.hmacVerifier.IsEnabled() {
-		signature := r.Header.Get("X-TV-Signature")
-		if !h.hmacVerifier.Verify(bodyBytes, signature) {
-			h.logger.Error("invalid signature",
-				zap.String("remote_addr", r.RemoteAddr),
-				zap.String("signature", signature))
-			http.Error(w, "Invalid signature", http.StatusUnauthorized)
-			return
-		}
-	}
 
 	// Parse request body
 	var alert AlertRequest

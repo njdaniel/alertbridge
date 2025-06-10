@@ -5,7 +5,6 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
 ## Features
 
 - Webhook endpoint for receiving trading alerts
-- HMAC authentication for TradingView webhooks
 - Risk management rules (cooldown periods, PnL checks)
 - Prometheus metrics integration
 - Graceful shutdown handling
@@ -25,7 +24,6 @@ Environment variables:
 - `ALP_SECRET`: Alpaca API secret
 - `ALP_BASE`: Alpaca API base URL (default: https://paper-api.alpaca.markets)
 - `PORT`: Server port (default: 3000)
-- `TV_SECRET`: TradingView webhook secret (optional)
 - `COOLDOWN_SEC`: Cooldown period in seconds (optional)
 - `PROM_URL`: Prometheus base URL for PnL checks (optional)
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
@@ -46,8 +44,7 @@ make docker
 
 ## Testing
 
-Unit tests cover HMAC verification, cooldown enforcement, and HTTP handler
-responses. Execute the suite with:
+Unit tests cover cooldown enforcement and HTTP handler responses. Execute the suite with:
 
 ```bash
 make test
@@ -97,8 +94,6 @@ Important notes about the webhook format:
 - `side` must be either "buy" or "sell"
 - `qty` can be a number or "all"
 - `ts` is optional and should be Unix timestamp in milliseconds
-
-If `TV_SECRET` is set, include the `X-TV-Signature` header with the HMAC-SHA256 signature of the request body.
 
 ## Metrics
 

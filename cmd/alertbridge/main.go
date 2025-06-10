@@ -14,6 +14,7 @@ import (
 	"github.com/njdaniel/alertbridge/internal/adapter"
 	"github.com/njdaniel/alertbridge/internal/handler"
 	"github.com/njdaniel/alertbridge/internal/risk"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -47,10 +48,15 @@ func main() {
 	// Initialize handler
 	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard)
 
+	// Create mux and register handlers
+	mux := http.NewServeMux()
+	mux.Handle("/hook", hookHandler)
+	mux.Handle("/metrics", promhttp.Handler())
+
 	// Create server
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: hookHandler,
+		Handler: mux,
 	}
 
 	// Start server in a goroutine

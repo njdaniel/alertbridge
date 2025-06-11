@@ -36,6 +36,11 @@ func (c *AlpacaClient) SetLogger(logger *zap.Logger) {
 	}
 }
 
+// isCrypto determines if a symbol represents a crypto pair
+func isCrypto(symbol string) bool {
+	return len(symbol) > 0 && (symbol[len(symbol)-3:] == "USD" || symbol[len(symbol)-4:] == "USDT" || symbol[len(symbol)-4:] == "USDC")
+}
+
 func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order, error) {
 	// Convert side to Alpaca side
 	alpacaSide := alpaca.Side(side)
@@ -46,13 +51,19 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 		return nil, fmt.Errorf("invalid qty: %w", err)
 	}
 
+	// Determine time in force based on asset type
+	timeInForce := alpaca.Day
+	if isCrypto(symbol) {
+		timeInForce = alpaca.GTC
+	}
+
 	// Create order request
 	orderRequest := alpaca.PlaceOrderRequest{
 		Symbol:        symbol,
 		Qty:           &qtyDec,
 		Side:          alpacaSide,
 		Type:          alpaca.Market,
-		TimeInForce:   alpaca.Day,
+		TimeInForce:   timeInForce,
 		ClientOrderID: fmt.Sprintf("%s-%d", bot, time.Now().UnixNano()),
 	}
 
@@ -62,6 +73,7 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 		zap.String("symbol", symbol),
 		zap.String("side", side),
 		zap.String("qty", qty),
+		zap.String("timeInForce", string(timeInForce)),
 		zap.Any("request", orderRequest))
 
 	// Place order
@@ -72,6 +84,7 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 				zap.String("symbol", symbol),
 				zap.String("side", side),
 				zap.String("qty", qty),
+				zap.String("timeInForce", string(timeInForce)),
 				zap.Int("status", apiErr.StatusCode),
 				zap.Int("code", apiErr.Code),
 				zap.String("message", apiErr.Message),
@@ -81,6 +94,7 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 				zap.String("symbol", symbol),
 				zap.String("side", side),
 				zap.String("qty", qty),
+				zap.String("timeInForce", string(timeInForce)),
 				zap.Error(err))
 		}
 		return nil, fmt.Errorf("failed to place order: %w", err)
@@ -90,6 +104,7 @@ func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order
 		zap.String("symbol", symbol),
 		zap.String("side", side),
 		zap.String("qty", qty),
+		zap.String("timeInForce", string(timeInForce)),
 		zap.String("orderID", order.ID))
 	return order, nil
 }

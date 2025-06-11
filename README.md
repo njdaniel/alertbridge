@@ -89,8 +89,8 @@ Send POST requests to `/hook` with the following JSON body:
 Important notes about the webhook format:
 - `symbol` must be in Alpaca's format:
   - For stocks: Use the standard ticker (e.g., "AAPL", "MSFT")
-  - For crypto: Use the combined format (e.g., "BTCUSD", "ETHUSD")
-  - Do not use forward slashes (e.g., use "BTCUSD" not "BTC/USD")
+  - For crypto: Use the combined format (e.g., "BTC/USD", "ETH/USD")
+  - Do use forward slashes (e.g., use "BTC/USD" not "BTCUSD")
 - `side` must be either "buy" or "sell"
 - `qty` can be a number or "all"
 - `ts` is optional and should be Unix timestamp in milliseconds

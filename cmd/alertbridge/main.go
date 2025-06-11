@@ -52,6 +52,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/hook", hookHandler)
 	mux.Handle("/metrics", promhttp.Handler())
+	logger.Info("Registered /metrics endpoint")
 
 	// Create server
 	srv := &http.Server{

@@ -38,7 +38,13 @@ func (c *AlpacaClient) SetLogger(logger *zap.Logger) {
 
 // isCrypto determines if a symbol represents a crypto pair
 func isCrypto(symbol string) bool {
-	return len(symbol) > 0 && (symbol[len(symbol)-3:] == "USD" || symbol[len(symbol)-4:] == "USDT" || symbol[len(symbol)-4:] == "USDC")
+	if len(symbol) >= 3 && symbol[len(symbol)-3:] == "USD" {
+		return true
+	}
+	if len(symbol) >= 4 && (symbol[len(symbol)-4:] == "USDT" || symbol[len(symbol)-4:] == "USDC") {
+		return true
+	}
+	return false
 }
 
 func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order, error) {

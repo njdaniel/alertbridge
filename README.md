@@ -79,7 +79,7 @@ Send POST requests to `/hook` with the following JSON body:
 ```json
 {
   "bot": "strategy1",
-  "symbol": "BTCUSD",
+  "symbol": "BTC/USD",
   "side": "buy",
   "qty": "10",
   "ts": 1234567890

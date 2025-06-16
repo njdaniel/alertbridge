@@ -121,6 +121,9 @@ Prometheus metrics are available at `/metrics`:
 
 - `order_total{bot,side}`: Counter of processed orders
 
+## Runbook
+See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

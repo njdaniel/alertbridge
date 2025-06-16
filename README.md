@@ -72,6 +72,23 @@ docker run -p 3000:3000 \
   alertbridge
 ```
 
+## Docker Compose
+
+This repository includes a `docker-compose.yml` for running AlertBridge together
+with Prometheus, Grafana, and ngrok. Create a `.env` file based on
+`.env.example` with your Alpaca and ngrok credentials, then start the stack:
+
+```bash
+docker compose up
+```
+
+Services will be available on the following ports:
+
+- **AlertBridge:** <http://localhost:3000>
+- **Prometheus:** <http://localhost:9090>
+- **Grafana:** <http://localhost:3001> (admin/admin)
+- **ngrok UI:** <http://localhost:4040>
+
 ## Webhook Format
 
 Send POST requests to `/hook` with the following JSON body:

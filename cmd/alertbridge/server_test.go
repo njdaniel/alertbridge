@@ -58,7 +58,7 @@ func TestServerStartupShutdown(t *testing.T) {
 	}
 
 	p, _ := os.FindProcess(os.Getpid())
-	p.Signal(syscall.SIGINT)
+	p.Signal(os.Interrupt)
 
 	select {
 	case <-done:

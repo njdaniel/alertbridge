@@ -46,3 +46,31 @@ func TestMetricsEndpoint(t *testing.T) {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
 }
+
+func TestHealthEndpoint(t *testing.T) {
+	t.Setenv("PROM_URL", "")
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	alpacaClient := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil)
+
+	mux := http.NewServeMux()
+	mux.Handle("/hook", h)
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/healthz")
+	if err != nil {
+		t.Fatalf("failed to get healthz: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+}

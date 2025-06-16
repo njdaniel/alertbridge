@@ -53,7 +53,10 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/hook", hookHandler)
 	mux.Handle("/metrics", promhttp.Handler())
-	logger.Info("Registered /metrics endpoint")
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	logger.Info("Registered /metrics and /healthz endpoints")
 
 	// Create server
 	srv := &http.Server{

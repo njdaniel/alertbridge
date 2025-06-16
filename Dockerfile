@@ -8,6 +8,7 @@ COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod download
+RUN apk add --no-cache wget
 
 # Copy source code
 COPY . .
@@ -22,9 +23,13 @@ WORKDIR /app
 
 # Copy the binary from builder
 COPY --from=builder /app/alertbridge .
+COPY --from=builder /usr/bin/wget /usr/bin/wget
 
 # Expose port
 EXPOSE 3000
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=5s CMD ["/usr/bin/wget","-qO-","http://localhost:3000/healthz"]
 
 # Run the application
 CMD ["./alertbridge"] 

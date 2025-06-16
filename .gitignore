@@ -41,4 +41,5 @@ dist/
 
 # Test coverage
 coverage.txt
-coverage.html 
+coverage.html
+sbom.spdx

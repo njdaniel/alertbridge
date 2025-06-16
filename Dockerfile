@@ -23,7 +23,7 @@ WORKDIR /app
 
 # Copy the binary from builder
 COPY --from=builder /app/alertbridge .
-COPY --from=builder /usr/bin/wget /usr/bin/wget
+# (Line removed as it is redundant)
 
 # Expose port
 EXPOSE 3000

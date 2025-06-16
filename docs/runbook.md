@@ -35,3 +35,15 @@ This document explains how to deploy, monitor, and roll back AlertBridge in prod
    docker compose up -d
    ```
 
+## Base Image Digest Updates
+
+To pin the Docker base image to the latest Distroless digest:
+
+1. Fetch the current digest:
+   ```bash
+   curl -s https://gcr.io/v2/distroless/static-debian11/manifests/latest \
+     | grep -o 'sha256:[0-9a-f]\{64\}' | head -n 1
+   ```
+2. Update the `FROM` line in the `Dockerfile` with the retrieved digest.
+3. Rebuild and redeploy the image.
+

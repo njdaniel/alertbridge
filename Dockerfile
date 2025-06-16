@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o alertbridge ./cmd/alertbridge
 
 # Final stage
-FROM gcr.io/distroless/static-debian11
+FROM gcr.io/distroless/static-debian11@sha256:e6d589f36c6c7d9a14df69da026b446ac03c0d2027bfca82981b6a1256c2019c
 
 WORKDIR /app
 

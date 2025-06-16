@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
+	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/risk"
 	"github.com/njdaniel/alertbridge/pkg/metrics"
 )
@@ -78,7 +79,7 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Missing signature", http.StatusUnauthorized)
 			return
 		}
-		if err := verifyHMAC(h.tvSecret, bodyBytes, sig); err != nil {
+		if err := auth.VerifyHMAC(h.tvSecret, bodyBytes, sig); err != nil {
 			h.logger.Error("invalid signature",
 				zap.Error(err),
 				zap.String("remote_addr", r.RemoteAddr),

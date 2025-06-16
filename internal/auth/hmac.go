@@ -1,4 +1,4 @@
-package handler
+package auth
 
 import (
 	"crypto/hmac"
@@ -7,9 +7,9 @@ import (
 	"fmt"
 )
 
-// verifyHMAC checks the request body against the provided HMAC signature.
+// VerifyHMAC checks the request body against the provided HMAC signature.
 // When the secret is empty, the check is skipped.
-func verifyHMAC(secret []byte, body []byte, headerSig string) error {
+func VerifyHMAC(secret, body []byte, headerSig string) error {
 	if len(secret) == 0 {
 		return nil
 	}

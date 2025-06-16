@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
+	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/risk"
 )
 
@@ -71,7 +72,7 @@ func TestVerifyHMAC(t *testing.T) {
 	body := []byte("test")
 	secret := []byte("s")
 	sig := sign(string(secret), body)
-	if err := verifyHMAC(secret, body, sig); err != nil {
+	if err := auth.VerifyHMAC(secret, body, sig); err != nil {
 		t.Fatalf("expected valid signature, got %v", err)
 	}
 }
@@ -79,13 +80,13 @@ func TestVerifyHMAC(t *testing.T) {
 func TestVerifyHMACInvalid(t *testing.T) {
 	body := []byte("test")
 	secret := []byte("s")
-	if err := verifyHMAC(secret, body, "bad"); err == nil {
+	if err := auth.VerifyHMAC(secret, body, "bad"); err == nil {
 		t.Fatalf("expected error for invalid signature")
 	}
 }
 
 func TestVerifyHMACDisabled(t *testing.T) {
-	if err := verifyHMAC(nil, []byte("test"), "anything"); err != nil {
+	if err := auth.VerifyHMAC(nil, []byte("test"), "anything"); err != nil {
 		t.Fatalf("expected nil when secret empty, got %v", err)
 	}
 }

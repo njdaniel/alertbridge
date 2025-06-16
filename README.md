@@ -29,6 +29,7 @@ Environment variables:
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
 - `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
 - `TV_SECRET`: Shared secret for validating TradingView webhooks using the `X-TV-Signature` header (optional)
+- `GF_SECURITY_ADMIN_PASSWORD`: Grafana admin password when using Docker Compose
 
 ## Building
 
@@ -77,7 +78,7 @@ docker run -p 3000:3000 \
 
 This repository includes a `docker-compose.yml` for running AlertBridge together
 with Prometheus, Grafana, and ngrok. Create a `.env` file based on
-`.env.example` with your Alpaca and ngrok credentials, then start the stack:
+`.env.example` with your Alpaca, ngrok, and Grafana credentials, then start the stack:
 
 ```bash
 docker compose up
@@ -87,7 +88,7 @@ Services will be available on the following ports:
 
 - **AlertBridge:** <http://localhost:3000>
 - **Prometheus:** <http://localhost:9090>
-- **Grafana:** <http://localhost:3001> (admin/admin)
+- **Grafana:** <http://localhost:3001> (login with `GF_SECURITY_ADMIN_PASSWORD`)
 - **ngrok UI:** <http://localhost:4040>
 
 ## Webhook Format

@@ -17,7 +17,7 @@ services:
       - alertbridge
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:9.5.2
     ports:
       - "3001:3000"
     environment:

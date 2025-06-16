@@ -66,8 +66,10 @@ export ALP_SECRET=your_secret
 
 ## Docker
 
+Use the provided Dockerfile together with the `.dockerignore` file to build the
+image:
+
 ```bash
-# Build and run with Docker
 docker build -t alertbridge .
 docker run -p 3000:3000 \
   -e ALP_KEY=your_key \

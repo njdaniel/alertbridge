@@ -127,6 +127,11 @@ Prometheus metrics are available at `/metrics`:
 The `/healthz` endpoint returns `200 OK` and can be used for container
 liveness checks.
 
+
+## Runbook
+See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

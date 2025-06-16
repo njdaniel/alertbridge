@@ -7,6 +7,7 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
 - Webhook endpoint for receiving trading alerts
 - Risk management rules (cooldown periods, PnL checks)
 - Prometheus metrics integration
+- Health check endpoint (`/healthz`)
 - Graceful shutdown handling
 - Containerized deployment
 
@@ -121,8 +122,15 @@ Prometheus metrics are available at `/metrics`:
 
 - `order_total{bot,side}`: Counter of processed orders
 
+## Health Check
+
+The `/healthz` endpoint returns `200 OK` and can be used for container
+liveness checks.
+
+
 ## Runbook
 See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
+
 
 ## License
 

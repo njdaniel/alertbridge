@@ -83,7 +83,7 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			h.logger.Error("invalid signature",
 				zap.Error(err),
 				zap.String("remote_addr", r.RemoteAddr),
-				zap.String("signature", sig))
+				zap.String("signature", sig[:8]+"..."))
 			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return
 		}

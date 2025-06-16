@@ -37,6 +37,7 @@ func main() {
 		port = "3000"
 	}
 	cooldownSec := os.Getenv("COOLDOWN_SEC")
+	tvSecret := os.Getenv("TV_SECRET")
 
 	// Initialize Alpaca client
 	alpacaClient := adapter.NewAlpacaClient(alpacaKey, alpacaSecret, alpacaBase)
@@ -46,7 +47,7 @@ func main() {
 	riskGuard := risk.NewGuard(cooldownSec)
 
 	// Initialize handler
-	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard)
+	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard, []byte(tvSecret))
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()

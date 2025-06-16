@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
+	"github.com/njdaniel/alertbridge/internal/auth"
 	"github.com/njdaniel/alertbridge/internal/risk"
 	"github.com/njdaniel/alertbridge/pkg/metrics"
 )
@@ -24,17 +25,20 @@ type HookHandler struct {
 	logger       *zap.Logger
 	alpacaClient *adapter.AlpacaClient
 	riskGuard    *risk.Guard
+	tvSecret     []byte
 }
 
 func NewHookHandler(
 	logger *zap.Logger,
 	alpacaClient *adapter.AlpacaClient,
 	riskGuard *risk.Guard,
+	tvSecret []byte,
 ) *HookHandler {
 	return &HookHandler{
 		logger:       logger,
 		alpacaClient: alpacaClient,
 		riskGuard:    riskGuard,
+		tvSecret:     tvSecret,
 	}
 }
 
@@ -67,6 +71,23 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		zap.String("remote_addr", r.RemoteAddr),
 		zap.String("user_agent", r.UserAgent()),
 		zap.String("body", string(bodyBytes)))
+
+	// Verify request signature when secret is provided
+	sig := r.Header.Get("X-TV-Signature")
+	if len(h.tvSecret) > 0 {
+		if sig == "" {
+			http.Error(w, "Missing signature", http.StatusUnauthorized)
+			return
+		}
+		if err := auth.VerifyHMAC(h.tvSecret, bodyBytes, sig); err != nil {
+			h.logger.Error("invalid signature",
+				zap.Error(err),
+				zap.String("remote_addr", r.RemoteAddr),
+				zap.String("signature", sig[:8]+"..."))
+			http.Error(w, "Invalid signature", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	// Parse request body
 	var alert AlertRequest

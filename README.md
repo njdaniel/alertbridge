@@ -28,6 +28,7 @@ Environment variables:
 - `PROM_URL`: Prometheus base URL for PnL checks (optional)
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
 - `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
+- `TV_SECRET`: Shared secret for validating TradingView webhooks using the `X-TV-Signature` header (optional)
 
 ## Building
 
@@ -111,6 +112,7 @@ Important notes about the webhook format:
 - `side` must be either "buy" or "sell"
 - `qty` can be a number or "all"
 - `ts` is optional and should be Unix timestamp in milliseconds
+- When `TV_SECRET` is set, include an `X-TV-Signature` header with the HMAC SHA256 of the request body
 
 ## Metrics
 

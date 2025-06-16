@@ -16,7 +16,10 @@ func TestCreateOrderEquity(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestPath = r.URL.Path
-		body, _ := ioutil.ReadAll(r.Body)
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
 		requestBody = body
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"id":"abc"}`))

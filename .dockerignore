@@ -1,0 +1,24 @@
+# Exclude version control
+.git
+
+# Test files
+/tests
+
+# SQLite and other database files
+*.db
+*.db-journal
+
+# Logs and coverage reports
+*.log
+coverage.*
+
+# Local environment and IDE files
+.env
+.env.*
+.idea/
+.vscode/
+
+# Build output
+alertbridge
+bin/
+dist/

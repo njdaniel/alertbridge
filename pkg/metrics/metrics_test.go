@@ -8,8 +8,11 @@ import (
 )
 
 func TestOrderTotalRegistered(t *testing.T) {
+	reg := testutil.NewRegistry()
+	reg.MustRegister(OrderTotal)
+
 	OrderTotal.WithLabelValues("test", "buy").Add(0)
-	count, err := testutil.GatherAndCount(prometheus.DefaultGatherer, "order_total")
+	count, err := testutil.GatherAndCount(reg, "order_total")
 	if err != nil {
 		t.Fatalf("gather error: %v", err)
 	}

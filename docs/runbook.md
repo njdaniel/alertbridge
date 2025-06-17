@@ -23,6 +23,38 @@ This document explains how to deploy, monitor, and roll back AlertBridge in prod
 - Prometheus metrics are exposed at `http://<host>:3000/metrics`. Use the provided `prometheus.yml` and Grafana dashboards to track request counts and errors.
 - Review container logs regularly for failed webhook deliveries or risk rule violations.
 
+### Alert Rules
+
+Prometheus alerts notify operators when critical conditions occur. Example rules:
+
+```yaml
+groups:
+  - name: alertbridge.rules
+    rules:
+      - alert: OrderCreationStall
+        expr: rate(order_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No orders have been created in the last 5 minutes"
+
+      - alert: HighWebhookLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{handler="hook"}[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "95th percentile webhook latency exceeds 500ms"
+```
+
+Grafana dashboards can visualize these metrics and alert statuses for quick triage.
+
+### Service Level Objectives
+
+- **Webhook latency:** 95th percentile should remain under 500ms.
+- **Order creation success rate:** at least 99% of valid webhooks must result in a successfully created order.
+
 ## Rollback
 
 1. Identify the previous working Docker image tag or git commit.

@@ -47,3 +47,19 @@ To pin the Docker base image to the latest Distroless digest:
 2. Update the `FROM` line in the `Dockerfile` with the retrieved digest.
 3. Rebuild and redeploy the image.
 
+
+## SBOM and Vulnerability Report Updates
+
+To regenerate the software bill of materials and vulnerability report:
+
+1. Install the tooling if not already available:
+   ```bash
+   go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
+   curl -sSfL https://raw.githubusercontent.com/anchore/syft/v0.84.0/install.sh | sh -s -- -b /usr/local/bin
+   ```
+2. Run the scanners from the repository root:
+   ```bash
+   govulncheck ./... 2>&1 | tee artifacts/govulncheck.txt
+   syft . -o spdx-json > artifacts/sbom.spdx
+   ```
+3. Commit the updated files in the `artifacts/` directory.

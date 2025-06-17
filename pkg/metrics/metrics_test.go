@@ -8,7 +8,7 @@ import (
 )
 
 func TestOrderTotalRegistered(t *testing.T) {
-	reg := testutil.NewRegistry()
+	reg := prometheus.NewRegistry()
 	reg.MustRegister(OrderTotal)
 
 	OrderTotal.WithLabelValues("test", "buy").Add(0)

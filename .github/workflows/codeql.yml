@@ -1,0 +1,47 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      - name: Perform CodeQL Analysis
+        id: analyze
+        uses: github/codeql-action/analyze@v3
+      - name: Fail on high-severity findings
+        if: always()
+        run: |
+          count=0
+          for f in $(find "${{steps.analyze.outputs.sarif-output}}" -name '*.sarif'); do
+            c=$(jq '[.runs[].results[] | select(.rule.properties."security-severity"? | tonumber >= 8)] | length' "$f")
+            count=$((count + c))
+          done
+          echo "High severity count: $count"
+          if [ "$count" -gt 0 ]; then
+            echo "::error::CodeQL found high severity issues"
+            exit 1
+          fi
+

@@ -78,3 +78,84 @@ func TestGuardCheckPnLMinFail(t *testing.T) {
 		t.Fatalf("expected pnl min error")
 	}
 }
+
+func TestGuardCheckPnLQueryError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	g := NewGuard("0")
+	if err := g.Check("bot"); err == nil {
+		t.Fatalf("expected query error")
+	}
+}
+
+func TestGuardCheckPnLStatusFail(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	g := NewGuard("0")
+	if err := g.Check("bot"); err == nil {
+		t.Fatalf("expected status error")
+	}
+}
+
+func TestGuardCheckPnLDecodeFail(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("bad"))
+	}))
+	defer ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	g := NewGuard("0")
+	if err := g.Check("bot"); err == nil {
+		t.Fatalf("expected decode error")
+	}
+}
+
+func TestGuardCheckPnLValueTypeFail(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":{"result":[{"value":[0,10]}]}}`))
+	}))
+	defer ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	g := NewGuard("0")
+	if err := g.Check("bot"); err == nil {
+		t.Fatalf("expected value type error")
+	}
+}
+
+func TestGuardCheckPnLParseFail(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":{"result":[{"value":[0,"bad"]}]}}`))
+	}))
+	defer ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "")
+	t.Setenv("PNL_MIN", "")
+
+	g := NewGuard("0")
+	if err := g.Check("bot"); err == nil {
+		t.Fatalf("expected parse error")
+	}
+}

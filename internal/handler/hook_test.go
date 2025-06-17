@@ -90,3 +90,124 @@ func TestVerifyHMACDisabled(t *testing.T) {
 		t.Fatalf("expected nil when secret empty, got %v", err)
 	}
 }
+
+func TestHandleMissingSignature(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"))
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rr.Code)
+	}
+}
+
+func TestHandleInvalidSignature(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"))
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	req.Header.Set("X-TV-Signature", "badbadbad")
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rr.Code)
+	}
+}
+
+func TestHandleInvalidJSON(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader([]byte("{")))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rr.Code)
+	}
+}
+
+func TestHandleMissingFields(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, nil)
+
+	body := []byte(`{"bot":"b"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rr.Code)
+	}
+}
+
+func TestHandleInvalidSide(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, nil)
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"bad","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rr.Code)
+	}
+}
+
+func TestHandleRiskFail(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":{"result":[{"value":[0,"10"]}]}}`))
+	}
+	ts := httptest.NewServer(http.HandlerFunc(handler))
+	defer ts.Close()
+
+	t.Setenv("PROM_URL", ts.URL)
+	t.Setenv("PNL_MAX", "5")
+	t.Setenv("PNL_MIN", "")
+
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, nil)
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", rr.Code)
+	}
+}
+
+func TestHandleOrderError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "fail", http.StatusInternalServerError)
+	}))
+	t.Cleanup(ts.Close)
+
+	client := adapter.NewAlpacaClient("key", "secret", ts.URL)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, nil)
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", rr.Code)
+	}
+}

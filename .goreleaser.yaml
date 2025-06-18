@@ -56,8 +56,8 @@ signs:
 
 dockers:
   - image_templates:
-      - ghcr.io/gofarrnd/{{ .ProjectName }}:{{ .Tag }}
-      - ghcr.io/gofarrnd/{{ .ProjectName }}:latest
+      - ghcr.io/njdaniel/{{ .ProjectName }}:{{ .Tag }}
+      - ghcr.io/njdaniel/{{ .ProjectName }}:latest
     use: docker
     dockerfile: ./docker/Dockerfile # thin wrapper inherits FROM golang:alpine
     build_flag_templates:

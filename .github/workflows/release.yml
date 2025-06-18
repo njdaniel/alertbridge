@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*" # any tag that starts with v (e.g. v1.2.0)
+
+permissions:
+  contents: write # needed for release uploads
+  packages: write # push to GHCR
+  id-token: write # future-proof (e.g. cosign/oidc)
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # pulls full history for tag signatures
+
+      # QEMU + binfmt enable cross-builds (arm64, etc.)
+      - uses: docker/setup-qemu-action@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.22"
+
+      # Import your GPG private key for signing
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      # Log in to GHCR (or Docker Hub)
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          # If you switch to cosign:
+          # COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}

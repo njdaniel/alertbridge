@@ -1,0 +1,77 @@
+# ---------- GoReleaser spec for alertbridge ----------
+project_name: alertbridge
+release:
+  github:
+    draft: true # stays a draft until you click “Publish”
+    discussion_category_name: Announcements
+  # You can add 'prerelease: auto' if you tag with v1.2.0-rc1 etc.
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: alertbridge
+    main: ./cmd/alertbridge # adjust if main.go is elsewhere
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags: >-
+      -s -w
+      -X "main.version={{.Tag}}"
+      -X "main.build={{.Commit}}"
+      -X "main.date={{.Date}}"
+
+archives:
+  - id: binaries
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
+    replacements:
+      darwin: macOS
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+signs:
+  # GPG-sign the *checksums* file (best practice)
+  - artifacts: checksum
+    command: gpg
+    args:
+      - --batch
+      - --pinentry-mode
+      - loopback
+      - --yes
+      - --detach-sign
+      - --armor
+      - "{{ .ArtifactPath }}"
+
+dockers:
+  - image_templates:
+      - ghcr.io/gofarrnd/{{ .ProjectName }}:{{ .Tag }}
+      - ghcr.io/gofarrnd/{{ .ProjectName }}:latest
+    use: docker
+    dockerfile: ./docker/Dockerfile # thin wrapper inherits FROM golang:alpine
+    build_flag_templates:
+      - --platform=linux/amd64
+    goos: linux
+    goarch: amd64
+    # if you prefer cosign over GPG, add:
+    # hooks:
+    #   post: cosign sign --yes ${{ .Image }}
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^ci:"
+      - "^test:"

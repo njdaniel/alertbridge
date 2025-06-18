@@ -2,8 +2,8 @@
 project_name: alertbridge
 release:
   github:
-    draft: true # stays a draft until you click “Publish”
-    discussion_category_name: Announcements
+    # draft: true # stays a draft until you click “Publish”
+    # discussion_category_name: Announcements
   # You can add 'prerelease: auto' if you tag with v1.2.0-rc1 etc.
 
 before:
@@ -32,8 +32,8 @@ archives:
   - id: binaries
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format: tar.gz
-    replacements:
-      darwin: macOS
+    # replacements:
+    # darwin: macOS
     files:
       - LICENSE
       - README.md
@@ -44,7 +44,7 @@ checksum:
 signs:
   # GPG-sign the *checksums* file (best practice)
   - artifacts: checksum
-    command: gpg
+    # command: gpg
     args:
       - --batch
       - --pinentry-mode

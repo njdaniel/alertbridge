@@ -52,7 +52,7 @@ signs:
       - --yes
       - --detach-sign
       - --armor
-      - "{{ .Path }}"
+      - "{{ .ArtifactName }}"
 
 dockers:
   - image_templates:

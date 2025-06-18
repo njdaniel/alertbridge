@@ -50,9 +50,11 @@ signs:
       - --pinentry-mode
       - loopback
       - --yes
+      - --ouput
+      - "${signature}"
       - --detach-sign
       - --armor
-      - "{{ .ArtifactPath }}"
+      - "${artifact}"
 
 dockers:
   - image_templates:

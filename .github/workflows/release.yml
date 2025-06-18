@@ -50,5 +50,6 @@ jobs:
           args: release --clean
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # If you switch to cosign:
           # COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}

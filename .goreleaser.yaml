@@ -50,7 +50,7 @@ signs:
       - --pinentry-mode
       - loopback
       - --yes
-      - --ouput
+      - --output
       - "${signature}"
       - --detach-sign
       - --armor

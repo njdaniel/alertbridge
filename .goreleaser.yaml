@@ -2,7 +2,7 @@
 project_name: alertbridge
 release:
   github:
-    # draft: true # stays a draft until you click “Publish”
+    # draft: true # stays a draft until you click "Publish"
     # discussion_category_name: Announcements
   # You can add 'prerelease: auto' if you tag with v1.2.0-rc1 etc.
 
@@ -66,6 +66,9 @@ dockers:
       - --platform=linux/amd64
     goos: linux
     goarch: amd64
+    extra_files:
+      - go.mod
+      - go.sum
     # if you prefer cosign over GPG, add:
     # hooks:
     #   post: cosign sign --yes ${{ .Image }}

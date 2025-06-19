@@ -61,7 +61,7 @@ dockers:
       - ghcr.io/njdaniel/{{ .ProjectName }}:{{ .Tag }}
       - ghcr.io/njdaniel/{{ .ProjectName }}:latest
     use: docker
-    dockerfile: ./docker/Dockerfile # thin wrapper inherits FROM golang:alpine
+    dockerfile: ./Dockerfile # thin wrapper inherits FROM golang:alpine
     build_flag_templates:
       - --platform=linux/amd64
     goos: linux

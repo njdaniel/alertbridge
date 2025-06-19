@@ -61,14 +61,11 @@ dockers:
       - ghcr.io/njdaniel/{{ .ProjectName }}:{{ .Tag }}
       - ghcr.io/njdaniel/{{ .ProjectName }}:latest
     use: docker
-    dockerfile: ./Dockerfile # thin wrapper inherits FROM golang:alpine
+    dockerfile: ./.docker/Dockerfile
     build_flag_templates:
       - --platform=linux/amd64
     goos: linux
     goarch: amd64
-    extra_files:
-      - go.mod
-      - go.sum
     # if you prefer cosign over GPG, add:
     # hooks:
     #   post: cosign sign --yes ${{ .Image }}

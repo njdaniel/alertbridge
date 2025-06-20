@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
 	"github.com/njdaniel/alertbridge/internal/handler"
+	"github.com/njdaniel/alertbridge/internal/notify"
 	"github.com/njdaniel/alertbridge/internal/risk"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -39,6 +41,24 @@ func main() {
 	cooldownSec := os.Getenv("COOLDOWN_SEC")
 	tvSecret := os.Getenv("TV_SECRET")
 
+	slackWebhook := os.Getenv("SLACK_WEBHOOK_URL")
+	slackToken := os.Getenv("SLACK_TOKEN")
+	slackChannel := os.Getenv("SLACK_CHANNEL")
+	notifyEnv := os.Getenv("SLACK_NOTIFY")
+	if notifyEnv == "" {
+		notifyEnv = "success"
+	}
+	notifySuccess := false
+	notifyFailure := false
+	for _, v := range strings.Split(notifyEnv, ",") {
+		switch strings.TrimSpace(v) {
+		case "success":
+			notifySuccess = true
+		case "failure":
+			notifyFailure = true
+		}
+	}
+
 	// Initialize Alpaca client
 	alpacaClient := adapter.NewAlpacaClient(alpacaKey, alpacaSecret, alpacaBase)
 	alpacaClient.SetLogger(logger)
@@ -46,8 +66,14 @@ func main() {
 	// Initialize risk guard
 	riskGuard := risk.NewGuard(cooldownSec)
 
+	// Initialize Slack notifier if configured
+	var notifier *notify.SlackNotifier
+	if slackWebhook != "" || slackToken != "" {
+		notifier = notify.NewSlackNotifier(slackWebhook, slackToken, slackChannel)
+	}
+
 	// Initialize handler
-	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard, []byte(tvSecret))
+	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard, []byte(tvSecret), notifier, notifySuccess, notifyFailure)
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()

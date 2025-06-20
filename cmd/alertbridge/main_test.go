@@ -29,7 +29,7 @@ func TestMetricsEndpoint(t *testing.T) {
 
 	alpacaClient := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil)
+	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil, nil, true, true)
 
 	mux := http.NewServeMux()
 	mux.Handle("/hook", h)
@@ -54,7 +54,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 	alpacaClient := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil)
+	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil, nil, true, true)
 
 	mux := http.NewServeMux()
 	mux.Handle("/hook", h)

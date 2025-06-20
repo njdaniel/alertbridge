@@ -9,6 +9,7 @@ import (
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
 	"github.com/njdaniel/alertbridge/internal/auth"
+	"github.com/njdaniel/alertbridge/internal/notify"
 	"github.com/njdaniel/alertbridge/internal/risk"
 	"github.com/njdaniel/alertbridge/pkg/metrics"
 )
@@ -22,10 +23,13 @@ type AlertRequest struct {
 }
 
 type HookHandler struct {
-	logger       *zap.Logger
-	alpacaClient *adapter.AlpacaClient
-	riskGuard    *risk.Guard
-	tvSecret     []byte
+	logger        *zap.Logger
+	alpacaClient  *adapter.AlpacaClient
+	riskGuard     *risk.Guard
+	tvSecret      []byte
+	notifier      *notify.SlackNotifier
+	notifySuccess bool
+	notifyFailure bool
 }
 
 func NewHookHandler(
@@ -33,12 +37,18 @@ func NewHookHandler(
 	alpacaClient *adapter.AlpacaClient,
 	riskGuard *risk.Guard,
 	tvSecret []byte,
+	notifier *notify.SlackNotifier,
+	success bool,
+	failure bool,
 ) *HookHandler {
 	return &HookHandler{
-		logger:       logger,
-		alpacaClient: alpacaClient,
-		riskGuard:    riskGuard,
-		tvSecret:     tvSecret,
+		logger:        logger,
+		alpacaClient:  alpacaClient,
+		riskGuard:     riskGuard,
+		tvSecret:      tvSecret,
+		notifier:      notifier,
+		notifySuccess: success,
+		notifyFailure: failure,
 	}
 }
 
@@ -124,6 +134,13 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("risk check failed",
 			zap.Error(err),
 			zap.String("bot", alert.Bot))
+		if h.notifier != nil && h.notifyFailure {
+			if notifyErr := h.notifier.SendMessage("Risk check failed for bot " + alert.Bot + ": " + err.Error()); notifyErr != nil {
+				h.logger.Error("failed to send notification",
+					zap.Error(notifyErr),
+					zap.String("bot", alert.Bot))
+			}
+		}
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
@@ -137,6 +154,9 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			zap.String("symbol", alert.Symbol),
 			zap.String("side", alert.Side),
 			zap.String("qty", alert.Qty))
+		if h.notifier != nil && h.notifyFailure {
+			h.notifier.SendMessage("Order creation failed for bot " + alert.Bot + ": " + err.Error())
+		}
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
@@ -151,6 +171,9 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		zap.String("side", alert.Side),
 		zap.String("qty", alert.Qty),
 		zap.String("order_id", order.ID))
+	if h.notifier != nil && h.notifySuccess {
+		h.notifier.SendMessage("Order created: " + alert.Bot + " " + alert.Side + " " + alert.Symbol + " qty " + alert.Qty)
+	}
 
 	// Return success
 	w.Header().Set("Content-Type", "application/json")

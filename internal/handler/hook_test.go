@@ -35,7 +35,7 @@ func newTestAlpacaClient(t *testing.T) *adapter.AlpacaClient {
 func TestHandleSuccess(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -50,7 +50,7 @@ func TestHandleSuccess(t *testing.T) {
 func TestHandleCooldown(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("1")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -94,7 +94,7 @@ func TestVerifyHMACDisabled(t *testing.T) {
 func TestHandleMissingSignature(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"))
+	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"), nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -109,7 +109,7 @@ func TestHandleMissingSignature(t *testing.T) {
 func TestHandleInvalidSignature(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"))
+	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"), nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -125,7 +125,7 @@ func TestHandleInvalidSignature(t *testing.T) {
 func TestHandleInvalidJSON(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader([]byte("{")))
 	rr := httptest.NewRecorder()
@@ -139,7 +139,7 @@ func TestHandleInvalidJSON(t *testing.T) {
 func TestHandleMissingFields(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -154,7 +154,7 @@ func TestHandleMissingFields(t *testing.T) {
 func TestHandleInvalidSide(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"bad","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -180,7 +180,7 @@ func TestHandleRiskFail(t *testing.T) {
 
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
@@ -200,7 +200,7 @@ func TestHandleOrderError(t *testing.T) {
 
 	client := adapter.NewAlpacaClient("key", "secret", ts.URL)
 	g := risk.NewGuard("0")
-	h := NewHookHandler(zap.NewNop(), client, g, nil)
+	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))

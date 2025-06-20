@@ -30,6 +30,10 @@ Environment variables:
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
 - `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
 - `TV_SECRET`: Shared secret for validating TradingView webhooks using the `X-TV-Signature` header (optional)
+- `SLACK_WEBHOOK_URL`: Slack incoming webhook URL (optional)
+- `SLACK_TOKEN`: Slack OAuth token with `chat:write` scope (optional)
+- `SLACK_CHANNEL`: Channel ID used when `SLACK_TOKEN` is set
+- `SLACK_NOTIFY`: Comma-separated events to send to Slack: `success` and/or `failure` (default: `success`)
 - `DOMAIN`: Domain for Caddy HTTPS configuration
 
 ## Building
@@ -120,6 +124,10 @@ Quick reference for running the stack in different environments. See
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.
+
+## Slack Integration
+
+Configure either `SLACK_WEBHOOK_URL` for incoming webhooks or `SLACK_TOKEN` with `chat:write` permissions and `SLACK_CHANNEL` for OAuth-based posting. Optionally set `SLACK_NOTIFY` to control which events are sent (`success`, `failure`). When enabled, AlertBridge will post formatted messages to the specified Slack channel whenever orders succeed or fail. See [docs/slack.md](docs/slack.md) for full setup instructions.
 
 ## Webhook Format
 

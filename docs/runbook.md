@@ -20,7 +20,7 @@ This document explains how to deploy, monitor, and roll back AlertBridge in prod
 
 ## Monitoring
 
-- Prometheus metrics are exposed at `http://<host>:3000/metrics`. Use the provided `prometheus.yml` and Grafana dashboards to track request counts and errors.
+- Prometheus metrics are exposed at `http://<host>:8080/metrics`. Use the provided `prometheus.yml` and Grafana dashboards to track request counts and errors.
 - Review container logs regularly for failed webhook deliveries or risk rule violations.
 
 ### Alert Rules

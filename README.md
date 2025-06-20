@@ -24,7 +24,7 @@ Environment variables:
 - `ALP_KEY`: Alpaca API key
 - `ALP_SECRET`: Alpaca API secret
 - `ALP_BASE`: Alpaca API base URL (default: https://paper-api.alpaca.markets)
-- `PORT`: Server port (default: 3000)
+- `PORT`: Server port (default: 8080)
 - `COOLDOWN_SEC`: Cooldown period in seconds (optional)
 - `PROM_URL`: Prometheus base URL for PnL checks (optional)
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)

@@ -1,0 +1,3 @@
+{$DOMAIN} {
+    reverse_proxy alertbridge:3000
+}

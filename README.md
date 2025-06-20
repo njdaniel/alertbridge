@@ -30,7 +30,7 @@ Environment variables:
 - `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
 - `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
 - `TV_SECRET`: Shared secret for validating TradingView webhooks using the `X-TV-Signature` header (optional)
-- `GF_SECURITY_ADMIN_PASSWORD`: Grafana admin password when using Docker Compose
+- `DOMAIN`: Domain for Caddy HTTPS configuration
 
 ## Building
 
@@ -79,9 +79,7 @@ docker run -p 3000:3000 \
 
 ## Docker Compose
 
-This repository includes a `docker-compose.yml` for running AlertBridge together
-with Prometheus, Grafana, and ngrok. Copy `.env.example` to `.env` (production) or `.env.local` (development) and fill in your Alpaca, ngrok, and Grafana credentials, then start the stack:
-
+This repository includes a `docker-compose.yml` for running AlertBridge together with Caddy and ngrok. Copy `.env.example` to `.env` (production) or `.env.local` (development) and fill in your Alpaca, ngrok, and DOMAIN values, then start the stack:
 ```bash
 docker compose up
 ```
@@ -89,8 +87,7 @@ docker compose up
 Services will be available on the following ports:
 
 - **AlertBridge:** <http://localhost:3000>
-- **Prometheus:** <http://localhost:9090>
-- **Grafana:** <http://localhost:3001> (login with `GF_SECURITY_ADMIN_PASSWORD`)
+- **Caddy:** https://<your-domain> (ports 80 and 443)
 - **ngrok UI:** <http://localhost:4040>
 
 ### Local vs Production

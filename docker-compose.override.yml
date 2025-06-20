@@ -5,6 +5,23 @@ services:
       - .env.local
     ports:
       - "8080:8080"
+  caddy:
+    image: caddy:2
+    env_file:
+      - .env.local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - alertbridge
   ngrok:
     command: ngrok http alertbridge:8080
+
+volumes:
+  caddy_data:
+  caddy_config:
 

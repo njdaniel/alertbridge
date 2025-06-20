@@ -92,26 +92,34 @@ Services will be available on the following ports:
 
 ### Local vs Production
 
-1. Copy `.env.example` to `.env.local` and set your test credentials.
-2. Start the stack for local testing:
+Quick reference for running the stack in different environments. See
+[`docs/environments.md`](docs/environments.md) for full details.
 
-```bash
-docker compose up
-```
+**Local development**
 
-Expose the service with ngrok:
+1. Copy `.env.example` to `.env.local` and set test credentials.
+2. Start the stack:
 
-```bash
-ngrok http 8080
-```
+   ```bash
+   docker compose up
+   ```
 
-For production, copy `.env.example` to `.env`, fill in real values, and run:
+3. Expose the service externally with ngrok:
 
-```bash
-docker compose -f docker-compose.yml up -d
-```
+   ```bash
+   ngrok http 8080
+   ```
 
-Use a reverse proxy like Caddy to serve HTTPS and forward traffic to AlertBridge.
+**Production**
+
+1. Copy `.env.example` to `.env` and set real values (including `DOMAIN`).
+2. Start the stack in detached mode:
+
+   ```bash
+   docker compose -f docker-compose.yml up -d
+   ```
+
+   Caddy terminates HTTPS and forwards traffic to AlertBridge.
 
 ## Webhook Format
 

@@ -1,11 +1,11 @@
-version: '3.8'
+version: '3.9'
 services:
   alertbridge:
     build: .
     env_file:
       - .env
     ports:
-      - "3000:3000"
+      - "8080:8080"
 
   caddy:
     image: caddy:2
@@ -21,15 +21,6 @@ services:
     depends_on:
       - alertbridge
 
-  ngrok:
-    image: wernight/ngrok:1.7.1
-    command: ngrok http alertbridge:3000
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-    ports:
-      - "4040:4040"
-    depends_on:
-      - alertbridge
 
 volumes:
   caddy_data:

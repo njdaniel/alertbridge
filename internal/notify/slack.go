@@ -32,7 +32,10 @@ func NewSlackNotifier(webhookURL, token, channel string) *SlackNotifier {
 func (s *SlackNotifier) SendMessage(text string) error {
 	if s.webhookURL != "" {
 		payload := map[string]string{"text": text}
-		b, _ := json.Marshal(payload)
+		b, err := json.Marshal(payload)
+		if err != nil {
+			return err
+		}
 		resp, err := s.client.Post(s.webhookURL, "application/json", bytes.NewReader(b))
 		if err != nil {
 			return err

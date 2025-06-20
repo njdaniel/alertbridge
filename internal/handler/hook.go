@@ -135,7 +135,11 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 			zap.String("bot", alert.Bot))
 		if h.notifier != nil && h.notifyFailure {
-			h.notifier.SendMessage("Risk check failed for bot " + alert.Bot + ": " + err.Error())
+			if notifyErr := h.notifier.SendMessage("Risk check failed for bot " + alert.Bot + ": " + err.Error()); notifyErr != nil {
+				h.logger.Error("failed to send notification",
+					zap.Error(notifyErr),
+					zap.String("bot", alert.Bot))
+			}
 		}
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return

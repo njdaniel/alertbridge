@@ -20,6 +20,11 @@ function get_account() {
 function place_order() {
   local symbol=$1 side=$2 qty=$3
   echo "Placing $side $qty of $symbol..."
+  # Use tif=gtc for crypto, day for stocks
+  local tif="day"
+  if [[ $symbol == *"/"* ]]; then
+    tif="gtc"
+  fi
   curl -s -X POST "$ALP_BASE/v2/orders" \
     -H "APCA-API-KEY-ID: $ALP_KEY" \
     -H "APCA-API-SECRET-KEY: $ALP_SECRET" \
@@ -29,7 +34,7 @@ function place_order() {
           --arg qty "$qty" \
           --arg side "$side" \
           --arg type "market" \
-          --arg tif "day" \
+          --arg tif "$tif" \
           '{symbol: $symbol, qty: $qty, side: $side, type: $type, time_in_force: $tif}')"
 }
 
@@ -41,5 +46,5 @@ get_account
 # place_order "AAPL" "buy" "1"
 
 # Uncomment to test a crypto order (ensure crypto enabled):
-# place_order "BTC/USD" "buy" "0.0001"
+place_order "BTC/USD" "buy" "0.0001"
 

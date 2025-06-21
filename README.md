@@ -75,7 +75,7 @@ image:
 
 ```bash
 docker build -t alertbridge .
-docker run -p 3000:3000 \
+docker run -p 8080:8080 \
   -e ALP_KEY=your_key \
   -e ALP_SECRET=your_secret \
   alertbridge
@@ -90,7 +90,7 @@ docker compose up
 
 Services will be available on the following ports:
 
-- **AlertBridge:** <http://localhost:3000>
+- **AlertBridge:** <http://localhost:8080>
 - **Caddy:** https://<your-domain> (ports 80 and 443)
 - **ngrok UI:** <http://localhost:4040>
 
@@ -101,7 +101,7 @@ Quick reference for running the stack in different environments. See
 
 **Local development**
 
-1. Copy `.env.example` to `.env.local` and set test credentials.
+1. Copy `.env.local.example` to `.env.local` and set test credentials.
 2. Start the stack:
 
    ```bash

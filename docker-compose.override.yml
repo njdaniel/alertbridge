@@ -1,5 +1,6 @@
 services:
   alertbridge:
+    build: .
     env_file:
       - .env.local
     ports:

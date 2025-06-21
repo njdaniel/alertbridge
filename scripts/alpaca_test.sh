@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Load env vars if .env exists
-if [[ -f .env ]]; then
+if [[ -f .env.local ]]; then
   export $(grep -v '^#' .env | xargs)
 fi
 

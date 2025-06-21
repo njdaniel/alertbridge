@@ -17,113 +17,26 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
 - Docker (optional, for containerized deployment)
 - Alpaca API credentials
 
+## Quickstart
+
+1. Build and test:
+   ```bash
+   make build
+   make test
+   ```
+2. Set required environment variables:
+   ```bash
+   export ALP_KEY=your_key
+   export ALP_SECRET=your_secret
+   ```
+3. Run the application:
+   ```bash
+   ./alertbridge
+   ```
+
 ## Configuration
 
-Environment variables:
-
-- `ALP_KEY`: Alpaca API key
-- `ALP_SECRET`: Alpaca API secret
-- `ALP_BASE`: Alpaca API base URL (default: https://paper-api.alpaca.markets)
-- `PORT`: Server port (default: 8080)
-- `COOLDOWN_SEC`: Cooldown period in seconds (optional)
-- `PROM_URL`: Prometheus base URL for PnL checks (optional)
-- `PNL_MAX`: Maximum allowed PnL before blocking orders (optional)
-- `PNL_MIN`: Minimum allowed PnL before blocking orders (optional)
-- `TV_SECRET`: Shared secret for validating TradingView webhooks using the `X-TV-Signature` header (optional)
-- `SLACK_WEBHOOK_URL`: Slack incoming webhook URL (optional)
-- `SLACK_TOKEN`: Slack OAuth token with `chat:write` scope (optional)
-- `SLACK_CHANNEL`: Channel ID used when `SLACK_TOKEN` is set
-- `SLACK_NOTIFY`: Comma-separated events to send to Slack: `success` and/or `failure` (default: `success`)
-- `DOMAIN`: Domain for Caddy HTTPS configuration
-
-## Building
-
-```bash
-# Build binary
-make build
-
-# Run tests
-make test
-
-# Build Docker image
-make docker
-```
-
-## Testing
-
-Unit tests cover cooldown enforcement and HTTP handler responses. Execute the suite with:
-
-```bash
-make test
-```
-
-## Running
-
-```bash
-# Set required environment variables
-export ALP_KEY=your_key
-export ALP_SECRET=your_secret
-
-# Run the application
-./alertbridge
-```
-
-## Docker
-
-Use the provided Dockerfile together with the `.dockerignore` file to build the
-image:
-
-```bash
-docker build -t alertbridge .
-docker run -p 8080:8080 \
-  -e ALP_KEY=your_key \
-  -e ALP_SECRET=your_secret \
-  alertbridge
-```
-
-## Docker Compose
-
-This repository includes a `docker-compose.yml` for running AlertBridge together with Caddy and ngrok. Copy `.env.example` to `.env` (production) or `.env.local` (development) and fill in your Alpaca, ngrok, and DOMAIN values, then start the stack:
-```bash
-docker compose up
-```
-
-Services will be available on the following ports:
-
-- **AlertBridge:** <http://localhost:8080>
-- **Caddy:** https://<your-domain> (ports 80 and 443)
-- **ngrok UI:** <http://localhost:4040>
-
-### Local vs Production
-
-Quick reference for running the stack in different environments. See
-[`docs/environments.md`](docs/environments.md) for full details.
-
-**Local development**
-
-1. Copy `.env.local.example` to `.env.local` and set test credentials.
-2. Start the stack:
-
-   ```bash
-   docker compose up
-   ```
-
-3. Expose the service externally with ngrok:
-
-   ```bash
-   ngrok http 8080
-   ```
-
-**Production**
-
-1. Copy `.env.example` to `.env` and set real values (including `DOMAIN`).
-2. Start the stack in detached mode:
-
-   ```bash
-   docker compose -f docker-compose.yml up -d
-   ```
-
-   Caddy terminates HTTPS and forwards traffic to AlertBridge.
+See [`docs/deployment.md`](docs/deployment.md) for Docker, Compose, and environment details.
 
 ## Slack Integration
 
@@ -131,27 +44,7 @@ Configure either `SLACK_WEBHOOK_URL` for incoming webhooks or `SLACK_TOKEN` with
 
 ## Webhook Format
 
-Send POST requests to `/hook` with the following JSON body:
-
-```json
-{
-  "bot": "strategy1",
-  "symbol": "BTC/USD",
-  "side": "buy",
-  "qty": "10",
-  "ts": 1234567890
-}
-```
-
-Important notes about the webhook format:
-- `symbol` must be in Alpaca's format:
-  - For stocks: Use the standard ticker (e.g., "AAPL", "MSFT")
-  - For crypto: Use the combined format (e.g., "BTC/USD", "ETH/USD")
-  - Do use forward slashes (e.g., use "BTC/USD" not "BTCUSD")
-- `side` must be either "buy" or "sell"
-- `qty` can be a number or "all"
-- `ts` is optional and should be Unix timestamp in milliseconds
-- When `TV_SECRET` is set, include an `X-TV-Signature` header with the HMAC SHA256 of the request body
+See [`docs/webhook.md`](docs/webhook.md) for full details and examples.
 
 ## Metrics
 
@@ -161,13 +54,10 @@ Prometheus metrics are available at `/metrics`:
 
 ## Health Check
 
-The `/healthz` endpoint returns `200 OK` and can be used for container
-liveness checks.
-
+The `/healthz` endpoint returns `200 OK` and can be used for container liveness checks.
 
 ## Runbook
 See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
-
 
 ## License
 

@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   alertbridge:
     env_file:
@@ -6,6 +5,7 @@ services:
     ports:
       - "8080:8080"
   ngrok:
+    image: ngrok/ngrok:latest
     command: ngrok http alertbridge:8080
     ports:
       - "4040:4040"

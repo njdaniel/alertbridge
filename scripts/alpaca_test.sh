@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Load env vars if .env exists
+# Load env vars if .env.local exists
 if [[ -f .env.local ]]; then
-  export $(grep -v '^#' .env | xargs)
+  export $(grep -v '^#' .env.local | xargs)
 fi
 
 # Check that required vars are set

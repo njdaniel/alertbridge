@@ -1,17 +1,13 @@
 services:
-  alertbridge:
-    build: .
-    env_file:
-      - .env.local
-    ports:
-      - "8080:8080"
   ngrok:
     image: ngrok/ngrok:latest
+    env_file:
+      - .env.local
     command: http alertbridge:8080
     depends_on:
       - alertbridge
     ports:
       - "4040:4040"
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    # environment:
+    #   - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
 

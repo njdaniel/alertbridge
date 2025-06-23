@@ -1,3 +1,5 @@
+# This is a sample configuration for a production environment using Docker Compose.
+# TODO: Pull alertbridge image from ghcr.io instead of building locally.
 services:
   caddy:
     image: caddy:2

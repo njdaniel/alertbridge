@@ -18,6 +18,19 @@ This document explains how to deploy, monitor, and roll back AlertBridge in prod
    docker compose up -d
    ```
 
+### Quick Validation
+
+After the stack is running, verify that the webhook endpoint is reachable.
+Two helper scripts in `scripts/` send a test order:
+
+```bash
+./scripts/curl_domain_webhook.sh <domain>
+./scripts/curl_ngrok_webhook.sh
+```
+
+Replace `<domain>` with your public hostname, e.g. `./scripts/curl_domain_webhook.sh example.com`.
+Use the ngrok script when exposing the service locally. Successful responses confirm that AlertBridge accepts webhook requests.
+
 ## Monitoring
 
 - Prometheus metrics are exposed at `http://<host>:8080/metrics`. Use the provided `prometheus.yml` and Grafana dashboards to track request counts and errors.

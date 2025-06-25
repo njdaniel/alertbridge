@@ -38,6 +38,7 @@ func TestGuardCheckPnLPass(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -56,6 +57,7 @@ func TestGuardCheckPnLMaxFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected pnl max error")
 	}
@@ -74,6 +76,7 @@ func TestGuardCheckPnLMinFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "1")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected pnl min error")
 	}
@@ -81,6 +84,7 @@ func TestGuardCheckPnLMinFail(t *testing.T) {
 
 func TestGuardCheckPnLQueryError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	client := ts.Client()
 	ts.Close()
 
 	t.Setenv("PROM_URL", ts.URL)
@@ -88,6 +92,7 @@ func TestGuardCheckPnLQueryError(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = client
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected query error")
 	}
@@ -104,6 +109,7 @@ func TestGuardCheckPnLStatusFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected status error")
 	}
@@ -121,6 +127,7 @@ func TestGuardCheckPnLDecodeFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected decode error")
 	}
@@ -138,6 +145,7 @@ func TestGuardCheckPnLValueTypeFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected value type error")
 	}
@@ -155,6 +163,7 @@ func TestGuardCheckPnLParseFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	g := NewGuard("0")
+	g.client = ts.Client()
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected parse error")
 	}

@@ -13,9 +13,9 @@ This document explains how to deploy, monitor, and roll back AlertBridge in prod
    ```bash
    docker build -t alertbridge:latest .
    ```
-3. **Deploy** the container to your infrastructure or run the provided `docker-compose.yml` stack:
+3. **Deploy** the container to your infrastructure or run the provided `docker-compose.prod.yml` stack:
    ```bash
-   docker compose up -d
+   docker compose -f docker-compose.prod.yml up -d
    ```
 
 ### Quick Validation
@@ -75,9 +75,9 @@ Grafana dashboards can visualize these metrics and alert statuses for quick tria
    ```bash
    docker run -d --rm --name alertbridge_previous <image:tag>
    ```
-3. If using Docker Compose, update the image tag in `docker-compose.yml` and run:
+3. If using Docker Compose, update the image tag in `docker-compose.prod.yml` and run:
    ```bash
-   docker compose up -d
+   docker compose -f docker-compose.prod.yml up -d
    ```
 
 ## Base Image Digest Updates

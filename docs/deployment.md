@@ -2,7 +2,7 @@
 
 ## Docker Compose
 
-This repository includes a `docker-compose.yml` for running AlertBridge together with Caddy and ngrok. Copy `.env.example` to `.env` (production) or `.env.local` (development) and fill in your Alpaca, ngrok, and DOMAIN values, then start the stack:
+This repository includes a `docker-compose.prod.yml` for running AlertBridge together with Caddy and ngrok. Copy `.env.example` to `.env` (production) or `.env.local` (development) and fill in your Alpaca, ngrok, and DOMAIN values, then start the stack:
 
 ```bash
 docker compose up
@@ -39,7 +39,7 @@ Quick reference for running the stack in different environments.
 2. Start the stack in detached mode:
 
    ```bash
-   docker compose -f docker-compose.yml up -d
+   docker compose -f docker-compose.prod.yml up -d
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.

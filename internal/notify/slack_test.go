@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,5 +47,19 @@ func TestSendMessageToken(t *testing.T) {
 	}
 	if !called {
 		t.Fatalf("expected api to be called")
+	}
+}
+
+func TestSendMessageMarshalError(t *testing.T) {
+	n := NewSlackNotifier("http://example.com", "", "")
+	originalMarshal := jsonMarshal
+	jsonMarshal = func(v interface{}) ([]byte, error) {
+		type bad struct{ C chan int }
+		return json.Marshal(bad{})
+	}
+	defer func() { jsonMarshal = originalMarshal }()
+
+	if err := n.SendMessage("boom"); err == nil {
+		t.Fatalf("expected marshal error, got nil")
 	}
 }

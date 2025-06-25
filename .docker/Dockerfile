@@ -6,7 +6,7 @@ WORKDIR /app
 COPY alertbridge .
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Run the application
 CMD ["./alertbridge"] 

@@ -33,6 +33,8 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
    ```bash
    ./alertbridge
    ```
+4. By default the server listens on port `8080`. Override with the `PORT`
+   environment variable if needed.
 
 ## Configuration
 

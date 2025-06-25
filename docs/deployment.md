@@ -43,3 +43,15 @@ Quick reference for running the stack in different environments.
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.
+
+### Testing Webhooks
+
+Use the helper script `curl_domain_webhook.sh` to send a test webhook to your
+production deployment. Pass your domain as the first argument:
+
+```bash
+./scripts/curl_domain_webhook.sh example.com
+```
+
+The script posts a sample order to `https://<domain>/hook` so you can verify that
+AlertBridge receives webhooks correctly.

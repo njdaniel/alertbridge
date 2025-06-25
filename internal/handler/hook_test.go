@@ -122,6 +122,22 @@ func TestHandleInvalidSignature(t *testing.T) {
 	}
 }
 
+func TestHandleInvalidSignatureShort(t *testing.T) {
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"), nil, true, true)
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	req.Header.Set("X-TV-Signature", "bad")
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rr.Code)
+	}
+}
+
 func TestHandleInvalidJSON(t *testing.T) {
 	client := newTestAlpacaClient(t)
 	g := risk.NewGuard("0")

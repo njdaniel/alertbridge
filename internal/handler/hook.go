@@ -90,10 +90,14 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := auth.VerifyHMAC(h.tvSecret, bodyBytes, sig); err != nil {
+			loggedSig := sig
+			if len(sig) >= 8 {
+				loggedSig = sig[:8] + "..."
+			}
 			h.logger.Error("invalid signature",
 				zap.Error(err),
 				zap.String("remote_addr", r.RemoteAddr),
-				zap.String("signature", sig[:8]+"..."))
+				zap.String("signature", loggedSig))
 			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return
 		}

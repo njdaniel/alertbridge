@@ -28,4 +28,4 @@ COPY --from=builder /app/alertbridge .
 EXPOSE 8080
 
 # Run the application
-CMD ["./alertbridge"] 
+CMD ["./alertbridge"]

@@ -3,6 +3,10 @@ set -euo pipefail
 
 # Get the current ngrok public HTTPS URL
 ngrok_url() {
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "Error: 'jq' is required but not installed. Please install jq to parse ngrok API responses." >&2
+        exit 1
+    fi
     curl --silent http://127.0.0.1:4040/api/tunnels \
         | jq -r '.tunnels[] | select(.proto=="https") | .public_url'
 }

@@ -36,7 +36,7 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
 
 ## Configuration
 
-See [`docs/deployment.md`](docs/deployment.md) for Docker, Compose, and environment details.
+See [`docs/deployment.md`](docs/deployment.md) for Docker, Compose, and environment details (including how to test your deployment using `curl_domain_webhook.sh`).
 
 ## Slack Integration
 

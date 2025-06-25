@@ -8,7 +8,7 @@ This guide explains how to configure AlertBridge for local development and for p
 2. Copy `.env.example` to `.env` for production deployments and set real API credentials. Include your production domain in the `DOMAIN` variable.
 3. Both `.env` and `.env.local` are ignored by Git (see `.gitignore`) so secrets won't be committed accidentally.
 
-Load either file when running Docker Compose with the `env_file` directive. `docker-compose.yml` uses `.env` by default while `docker-compose.override.yml` loads `.env.local` for development.
+Load either file when running Docker Compose with the `env_file` directive. `docker-compose.prod.yml` uses `.env` by default while `docker-compose.override.yml` loads `.env.local` for development.
 
 ## Local Testing with ngrok
 
@@ -29,7 +29,7 @@ If you configured `NGROK_AUTHTOKEN` in `.env.local`, Docker Compose will start a
 Production deployments typically run behind Caddy to provide HTTPS. Set the `DOMAIN` variable in `.env` and start the stack in detached mode:
 
 ```bash
-docker compose -f docker-compose.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 Caddy reads `DOMAIN` from the environment and proxies HTTPS traffic to the AlertBridge container. See `Caddyfile` for the minimal reverse proxy configuration.

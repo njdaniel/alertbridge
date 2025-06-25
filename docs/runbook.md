@@ -69,15 +69,20 @@ Grafana dashboards can visualize these metrics and alert statuses for quick tria
 
 ## Base Image Digest Updates
 
-To pin the Docker base image to the latest Distroless digest:
+Periodically refresh the pinned base images to include the latest security patches.
 
-1. Fetch the current digest:
+1. Fetch the current digest for the Go builder image:
+   ```bash
+   curl -s https://registry.hub.docker.com/v2/repositories/library/golang/tags/1.21-alpine \
+     | grep -o '"digest":"sha256:[0-9a-f]*"' | head -n 1
+   ```
+2. Fetch the current digest for Distroless:
    ```bash
    curl -s https://gcr.io/v2/distroless/static-debian11/manifests/latest \
      | grep -o 'sha256:[0-9a-f]\{64\}' | head -n 1
    ```
-2. Update the `FROM` line in the `Dockerfile` with the retrieved digest.
-3. Rebuild and redeploy the image.
+3. Update the `FROM` lines in the `Dockerfile` with the retrieved digests.
+4. Rebuild and redeploy the image.
 
 
 ## SBOM and Vulnerability Report Updates

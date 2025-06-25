@@ -24,6 +24,23 @@ ngrok http 8080
 
 If you configured `NGROK_AUTHTOKEN` in `.env.local`, Docker Compose will start an ngrok container automatically.
 
+### Testing webhooks with `curl_ngrok_webhook.sh`
+
+With the stack and ngrok running you can send a sample webhook to the exposed URL using the helper script:
+
+```bash
+./scripts/curl_ngrok_webhook.sh
+```
+
+Expected output resembles:
+
+```
+Sending webhook to: https://abcd-1234.ngrok.io
+{"status":"ok"}
+```
+
+The script grabs the public ngrok URL from the local API and posts a minimal JSON payload to `/hook`. Modify the payload inside the script if you need to test different values.
+
 ## Production with Caddy
 
 Production deployments typically run behind Caddy to provide HTTPS. Set the `DOMAIN` variable in `.env` and start the stack in detached mode:

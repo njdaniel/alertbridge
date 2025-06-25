@@ -5,11 +5,14 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/njdaniel/alertbridge/internal/adapter"
 	"github.com/njdaniel/alertbridge/internal/auth"
@@ -209,5 +212,45 @@ func TestHandleOrderError(t *testing.T) {
 	h.Handle(rr, req)
 	if rr.Code != http.StatusInternalServerError {
 		t.Fatalf("expected 500, got %d", rr.Code)
+	}
+}
+
+func TestHandleLogRedaction(t *testing.T) {
+	core, obs := observer.New(zap.InfoLevel)
+	logger := zap.New(core)
+
+	client := newTestAlpacaClient(t)
+	g := risk.NewGuard("0")
+	h := NewHookHandler(logger, client, g, nil, nil, true, true)
+
+	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
+	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	h.Handle(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	for _, entry := range obs.All() {
+		if strings.Contains(entry.Message, string(body)) {
+			t.Fatalf("request body leaked in log message")
+		}
+		for _, v := range entry.ContextMap() {
+			if strings.Contains(fmt.Sprintf("%v", v), string(body)) {
+				t.Fatalf("request body leaked in log field")
+			}
+		}
+	}
+
+	found := false
+	for _, entry := range obs.FilterMessage("parsed webhook request").All() {
+		m := entry.ContextMap()
+		if m["bot"] == "b" && m["symbol"] == "AAPL" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected parsed webhook log with metadata")
 	}
 }

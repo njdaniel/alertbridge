@@ -64,7 +64,7 @@ func main() {
 	alpacaClient.SetLogger(logger)
 
 	// Initialize risk guard
-	riskGuard := risk.NewGuard(cooldownSec)
+	riskGuard := risk.NewGuard(cooldownSec, logger)
 
 	// Initialize Slack notifier if configured
 	var notifier *notify.SlackNotifier

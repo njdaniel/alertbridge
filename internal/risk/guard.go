@@ -13,11 +13,15 @@ import (
 	"go.uber.org/zap"
 )
 
+const defaultPromTimeout = 5 * time.Second
+
 type Guard struct {
 	logger      *zap.Logger
 	cooldownSec int
 	lastAlert   map[string]time.Time
 	mu          sync.RWMutex
+
+	client *http.Client
 
 	promURL   string
 	pnlMax    float64
@@ -28,6 +32,15 @@ type Guard struct {
 func NewGuard(cooldownSec string) *Guard {
 	sec, _ := strconv.Atoi(cooldownSec)
 	promURL := os.Getenv("PROM_URL")
+
+	timeout := defaultPromTimeout
+	if v := os.Getenv("PROM_TIMEOUT_SEC"); v != "" {
+		if t, err := strconv.Atoi(v); err == nil && t > 0 {
+			timeout = time.Duration(t) * time.Second
+		} else {
+			fmt.Printf("Warning: Invalid PROM_TIMEOUT_SEC value '%s', using default %v. Error: %v\n", v, defaultPromTimeout, err)
+		}
+	}
 
 	var (
 		pnlMax    float64
@@ -58,6 +71,7 @@ func NewGuard(cooldownSec string) *Guard {
 		cooldownSec: sec,
 		lastAlert:   make(map[string]time.Time),
 		promURL:     promURL,
+		client:      &http.Client{Timeout: timeout},
 		pnlMax:      pnlMax,
 		pnlMin:      pnlMin,
 		pnlMaxSet:   pnlMaxSet,
@@ -122,7 +136,7 @@ func (g *Guard) checkPnL(bot string) error {
 		zap.String("bot", bot),
 		zap.String("endpoint", endpoint))
 
-	resp, err := http.Get(endpoint)
+	resp, err := g.client.Get(endpoint)
 	if err != nil {
 		g.logger.Error("failed to query Prometheus",
 			zap.Error(err),

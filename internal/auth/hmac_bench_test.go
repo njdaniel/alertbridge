@@ -10,7 +10,7 @@ import (
 func BenchmarkVerifyHMAC(b *testing.B) {
 	secret := []byte("secret")
 	body := []byte("benchmark")
-	sig := "" // compute once
+	var sig string // compute once
 	// compute correct signature once
 	h := hmac.New(sha256.New, secret)
 	h.Write(body)

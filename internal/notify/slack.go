@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var jsonMarshal = json.Marshal
+
 var slackAPIURL = "https://slack.com/api/chat.postMessage"
 
 // SlackNotifier sends messages to Slack via webhook or OAuth token.
@@ -32,7 +34,7 @@ func NewSlackNotifier(webhookURL, token, channel string) *SlackNotifier {
 func (s *SlackNotifier) SendMessage(text string) error {
 	if s.webhookURL != "" {
 		payload := map[string]string{"text": text}
-		b, err := json.Marshal(payload)
+		b, err := jsonMarshal(payload)
 		if err != nil {
 			return err
 		}
@@ -49,7 +51,10 @@ func (s *SlackNotifier) SendMessage(text string) error {
 
 	if s.token != "" {
 		payload := map[string]string{"channel": s.channel, "text": text}
-		b, _ := json.Marshal(payload)
+		b, err := jsonMarshal(payload)
+		if err != nil {
+			return err
+		}
 		req, err := http.NewRequest("POST", slackAPIURL, bytes.NewReader(b))
 		if err != nil {
 			return err

@@ -2,7 +2,7 @@
 
 ## Docker Compose
 
-This repository includes a `docker-compose.yml` for running AlertBridge together with Caddy and ngrok. Copy `.env.example` to `.env` (or `.env.production`) for production and place your Alpaca and DOMAIN values there. Use `.env.local` only if you need ngrok support by copying `.env.local.example` and setting `NGROK_AUTHTOKEN`, then start the stack:
+This repository includes a `docker-compose.yml` for running AlertBridge together with Caddy and ngrok. For production, copy `.env.example` to `.env` (or `.env.production`) and place your Alpaca and DOMAIN values there. For local development with ngrok, copy `.env.local.example` to `.env.local`, set `NGROK_AUTHTOKEN`, and then start the stack:
 
 ```bash
 docker compose up

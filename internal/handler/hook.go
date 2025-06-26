@@ -76,11 +76,10 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log incoming request
+	// Log incoming request metadata only
 	h.logger.Info("received webhook request",
 		zap.String("remote_addr", r.RemoteAddr),
-		zap.String("user_agent", r.UserAgent()),
-		zap.String("body", string(bodyBytes)))
+		zap.String("user_agent", r.UserAgent()))
 
 	// Verify request signature when secret is provided
 	sig := r.Header.Get("X-TV-Signature")
@@ -104,10 +103,15 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal(bodyBytes, &alert); err != nil {
 		h.logger.Error("failed to decode request",
 			zap.Error(err),
-			zap.String("body", string(bodyBytes)))
+			zap.Int("body_len", len(bodyBytes)))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
+	// Log parsed alert metadata
+	h.logger.Info("parsed webhook request",
+		zap.String("bot", alert.Bot),
+		zap.String("symbol", alert.Symbol))
 
 	// Validate required fields
 	if alert.Bot == "" || alert.Symbol == "" || alert.Side == "" || alert.Qty == "" {

@@ -30,6 +30,7 @@ type HookHandler struct {
 	notifier      *notify.SlackNotifier
 	notifySuccess bool
 	notifyFailure bool
+	fullLogging   bool // when true, log remote address and full request body
 }
 
 func NewHookHandler(
@@ -40,6 +41,7 @@ func NewHookHandler(
 	notifier *notify.SlackNotifier,
 	success bool,
 	failure bool,
+	fullLogging bool,
 ) *HookHandler {
 	return &HookHandler{
 		logger:        logger,
@@ -49,6 +51,7 @@ func NewHookHandler(
 		notifier:      notifier,
 		notifySuccess: success,
 		notifyFailure: failure,
+		fullLogging:   fullLogging,
 	}
 }
 
@@ -69,18 +72,25 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Read request body
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		h.logger.Error("failed to read request body",
-			zap.Error(err),
-			zap.String("remote_addr", r.RemoteAddr))
+		fields := []zap.Field{zap.Error(err)}
+		if h.fullLogging {
+			fields = append(fields, zap.String("remote_addr", r.RemoteAddr))
+		}
+		h.logger.Error("failed to read request body", fields...)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	// Log incoming request
-	h.logger.Info("received webhook request",
-		zap.String("remote_addr", r.RemoteAddr),
-		zap.String("user_agent", r.UserAgent()),
-		zap.String("body", string(bodyBytes)))
+	reqFields := []zap.Field{zap.String("user_agent", r.UserAgent())}
+	if h.fullLogging {
+		reqFields = append(reqFields,
+			zap.String("remote_addr", r.RemoteAddr),
+			zap.String("body", string(bodyBytes)))
+	} else {
+		reqFields = append(reqFields, zap.Int("body_len", len(bodyBytes)))
+	}
+	h.logger.Info("received webhook request", reqFields...)
 
 	// Verify request signature when secret is provided
 	sig := r.Header.Get("X-TV-Signature")
@@ -90,10 +100,11 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := auth.VerifyHMAC(h.tvSecret, bodyBytes, sig); err != nil {
-			h.logger.Error("invalid signature",
-				zap.Error(err),
-				zap.String("remote_addr", r.RemoteAddr),
-				zap.String("signature", sig[:8]+"..."))
+			fields := []zap.Field{zap.Error(err), zap.String("signature", sig[:8]+"...")}
+			if h.fullLogging {
+				fields = append(fields, zap.String("remote_addr", r.RemoteAddr))
+			}
+			h.logger.Error("invalid signature", fields...)
 			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return
 		}
@@ -102,9 +113,11 @@ func (h *HookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	var alert AlertRequest
 	if err := json.Unmarshal(bodyBytes, &alert); err != nil {
-		h.logger.Error("failed to decode request",
-			zap.Error(err),
-			zap.String("body", string(bodyBytes)))
+		fields := []zap.Field{zap.Error(err)}
+		if h.fullLogging {
+			fields = append(fields, zap.String("body", string(bodyBytes)))
+		}
+		h.logger.Error("failed to decode request", fields...)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}

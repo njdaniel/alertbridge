@@ -43,3 +43,13 @@ Quick reference for running the stack in different environments.
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.
+
+### PROM_URL with HTTPS
+
+AlertBridge can query a Prometheus server for PnL metrics when the `PROM_URL` environment variable is set. For production deployments, configure this endpoint to use TLS and set the variable to the HTTPS URL:
+
+```env
+PROM_URL=https://prom.example.com
+```
+
+Ensure the Prometheus server presents a valid certificate so requests from AlertBridge succeed.

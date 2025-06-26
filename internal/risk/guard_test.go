@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func TestGuardCooldown(t *testing.T) {
@@ -12,7 +14,7 @@ func TestGuardCooldown(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("1")
+	g := NewGuard("1", zap.NewNop())
 	if err := g.Check("bot"); err != nil {
 		t.Fatalf("first check failed: %v", err)
 	}
@@ -37,7 +39,7 @@ func TestGuardCheckPnLPass(t *testing.T) {
 	t.Setenv("PNL_MAX", "15")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -55,7 +57,7 @@ func TestGuardCheckPnLMaxFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "5")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected pnl max error")
 	}
@@ -73,7 +75,7 @@ func TestGuardCheckPnLMinFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "1")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected pnl min error")
 	}
@@ -87,7 +89,7 @@ func TestGuardCheckPnLQueryError(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected query error")
 	}
@@ -103,7 +105,7 @@ func TestGuardCheckPnLStatusFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected status error")
 	}
@@ -120,7 +122,7 @@ func TestGuardCheckPnLDecodeFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected decode error")
 	}
@@ -137,7 +139,7 @@ func TestGuardCheckPnLValueTypeFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected value type error")
 	}
@@ -154,7 +156,7 @@ func TestGuardCheckPnLParseFail(t *testing.T) {
 	t.Setenv("PNL_MAX", "")
 	t.Setenv("PNL_MIN", "")
 
-	g := NewGuard("0")
+	g := NewGuard("0", zap.NewNop())
 	if err := g.Check("bot"); err == nil {
 		t.Fatalf("expected parse error")
 	}

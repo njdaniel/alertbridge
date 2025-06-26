@@ -34,7 +34,7 @@ func newTestAlpacaClient(t *testing.T) *adapter.AlpacaClient {
 
 func TestHandleSuccess(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
@@ -49,7 +49,7 @@ func TestHandleSuccess(t *testing.T) {
 
 func TestHandleCooldown(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("1")
+	g := risk.NewGuard("1", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
@@ -93,7 +93,7 @@ func TestVerifyHMACDisabled(t *testing.T) {
 
 func TestHandleMissingSignature(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"), nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
@@ -108,7 +108,7 @@ func TestHandleMissingSignature(t *testing.T) {
 
 func TestHandleInvalidSignature(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, []byte("s"), nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
@@ -124,7 +124,7 @@ func TestHandleInvalidSignature(t *testing.T) {
 
 func TestHandleInvalidJSON(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader([]byte("{")))
@@ -138,7 +138,7 @@ func TestHandleInvalidJSON(t *testing.T) {
 
 func TestHandleMissingFields(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b"}`)
@@ -153,7 +153,7 @@ func TestHandleMissingFields(t *testing.T) {
 
 func TestHandleInvalidSide(t *testing.T) {
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"bad","qty":"1"}`)
@@ -179,7 +179,7 @@ func TestHandleRiskFail(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	client := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)
@@ -199,7 +199,7 @@ func TestHandleOrderError(t *testing.T) {
 	t.Cleanup(ts.Close)
 
 	client := adapter.NewAlpacaClient("key", "secret", ts.URL)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := NewHookHandler(zap.NewNop(), client, g, nil, nil, true, true)
 
 	body := []byte(`{"bot":"b","symbol":"AAPL","side":"buy","qty":"1"}`)

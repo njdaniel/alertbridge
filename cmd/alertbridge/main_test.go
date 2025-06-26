@@ -28,7 +28,7 @@ func TestMetricsEndpoint(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	alpacaClient := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil, nil, true, true)
 
 	mux := http.NewServeMux()
@@ -53,7 +53,7 @@ func TestHealthEndpoint(t *testing.T) {
 	t.Setenv("PNL_MIN", "")
 
 	alpacaClient := newTestAlpacaClient(t)
-	g := risk.NewGuard("0")
+	g := risk.NewGuard("0", zap.NewNop())
 	h := handler.NewHookHandler(zap.NewNop(), alpacaClient, g, nil, nil, true, true)
 
 	mux := http.NewServeMux()

@@ -43,3 +43,18 @@ Quick reference for running the stack in different environments.
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.
+
+## Running from Source
+
+You can also run AlertBridge directly without Docker. Build the binary and execute it with your Alpaca credentials set as environment variables:
+
+```bash
+go build -o alertbridge ./cmd/alertbridge
+ALP_KEY=your_key ALP_SECRET=your_secret ./alertbridge
+```
+
+Alternatively run without building:
+
+```bash
+ALP_KEY=your_key ALP_SECRET=your_secret go run ./cmd/alertbridge
+```

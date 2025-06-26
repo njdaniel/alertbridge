@@ -35,11 +35,16 @@ Quick reference for running the stack in different environments.
 
 #### Production
 
-1. Copy `.env.example` to `.env` (or `.env.production`) and set your Alpaca credentials and other real values such as `DOMAIN`.
-2. Start the stack in detached mode:
+1. Copy `.env.example` to `.env` and set real values 
+2. If using `docker-compose.prod.yml` for a Caddy-based deployment, copy
+   `.env.production.example` to `.env.production` and update the image registry
+   and domain values.
+3. Start the stack in detached mode:
+
 
    ```bash
-   docker compose -f docker-compose.yml up -d
+   docker compose --env-file .env.production \
+     -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```
 
    Caddy terminates HTTPS and forwards traffic to AlertBridge.

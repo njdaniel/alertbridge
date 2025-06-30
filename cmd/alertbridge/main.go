@@ -59,6 +59,11 @@ func main() {
 		}
 	}
 
+	debugLogging := false
+	if v := os.Getenv("DEBUG_LOGGING"); strings.ToLower(v) == "true" || v == "1" {
+		debugLogging = true
+	}
+
 	// Initialize Alpaca client
 	alpacaClient := adapter.NewAlpacaClient(alpacaKey, alpacaSecret, alpacaBase)
 	alpacaClient.SetLogger(logger)
@@ -73,7 +78,7 @@ func main() {
 	}
 
 	// Initialize handler
-	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard, []byte(tvSecret), notifier, notifySuccess, notifyFailure)
+	hookHandler := handler.NewHookHandler(logger, alpacaClient, riskGuard, []byte(tvSecret), notifier, notifySuccess, notifyFailure, debugLogging)
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()

@@ -10,6 +10,23 @@ This guide explains how to configure AlertBridge for local development and for p
 
 Load either file when running Docker Compose with the `env_file` directive. `docker-compose.yml` uses `.env` by default while `docker-compose.override.yml` loads `.env.local` for development.
 
+## .env.production
+
+For containerized production deployments you may want to define image and domain
+variables separately from the standard `.env` file. Copy
+`.env.production.example` to `.env.production` and fill in the values for
+`IMAGE_TAG`, `REGISTRY`, and `DOMAIN`.
+
+The `docker-compose.prod.yml` configuration reads this file when the production
+stack is launched:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Use this file when deploying to a remote host or CI system where you build and
+push a tagged Docker image.
+
 ## Local Testing with ngrok
 
 For quick testing against webhooks from external services, expose the local server using ngrok:

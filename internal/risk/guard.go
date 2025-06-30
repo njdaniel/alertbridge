@@ -25,9 +25,13 @@ type Guard struct {
 	pnlMaxSet bool
 }
 
-func NewGuard(cooldownSec string) *Guard {
+func NewGuard(cooldownSec string, logger *zap.Logger) *Guard {
 	sec, _ := strconv.Atoi(cooldownSec)
 	promURL := os.Getenv("PROM_URL")
+
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 
 	var (
 		pnlMax    float64
@@ -38,7 +42,7 @@ func NewGuard(cooldownSec string) *Guard {
 		var err error
 		pnlMax, err = strconv.ParseFloat(v, 64)
 		if err != nil {
-			fmt.Printf("Warning: Invalid PNL_MAX value '%s', using default 0.0. Error: %v\n", v, err)
+			logger.Warn("invalid PNL_MAX value, using default", zap.String("value", v), zap.Error(err))
 			pnlMax = 0.0
 		}
 	}
@@ -48,13 +52,13 @@ func NewGuard(cooldownSec string) *Guard {
 		var err error
 		pnlMin, err = strconv.ParseFloat(v, 64)
 		if err != nil {
-			fmt.Printf("Warning: Invalid PNL_MIN value '%s', using default 0.0. Error: %v\n", v, err)
+			logger.Warn("invalid PNL_MIN value, using default", zap.String("value", v), zap.Error(err))
 			pnlMin = 0.0
 		}
 	}
 
 	return &Guard{
-		logger:      zap.NewNop(),
+		logger:      logger,
 		cooldownSec: sec,
 		lastAlert:   make(map[string]time.Time),
 		promURL:     promURL,

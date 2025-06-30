@@ -59,6 +59,10 @@ The `/healthz` endpoint returns `200 OK` and can be used for container liveness 
 ## Runbook
 See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
 
+## Privacy
+
+See [docs/privacy.md](docs/privacy.md) for information on how webhook payloads are logged, how long logs are kept, and how to request deletion.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

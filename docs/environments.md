@@ -4,8 +4,8 @@ This guide explains how to configure AlertBridge for local development and for p
 
 ## .env.local vs .env
 
-1. Copy `.env.local.example` to `.env.local` for local development. Fill in your Alpaca credentials and any optional values like `NGROK_AUTHTOKEN`.
-2. Copy `.env.example` to `.env` for production deployments and set real API credentials. Include your production domain in the `DOMAIN` variable.
+1. Copy `.env.local.example` to `.env.local` if you want to run ngrok locally. The file now only provides `NGROK_AUTHTOKEN`.
+2. Copy `.env.example` to `.env` (or `.env.production`) for production deployments. Set your Alpaca credentials and include your production domain in the `DOMAIN` variable.
 3. Both `.env` and `.env.local` are ignored by Git (see `.gitignore`) so secrets won't be committed accidentally.
 
 Load either file when running Docker Compose with the `env_file` directive. `docker-compose.yml` uses `.env` by default while `docker-compose.override.yml` loads `.env.local` for development.

@@ -27,41 +27,33 @@ type Guard struct {
 
 func NewGuard(cooldownSec string) *Guard {
 	sec, _ := strconv.Atoi(cooldownSec)
-	promURL := os.Getenv("PROM_URL")
-
-	var (
-		pnlMax    float64
-		pnlMaxSet bool
-	)
-	if v, ok := os.LookupEnv("PNL_MAX"); ok {
-		pnlMaxSet = true
-		var err error
-		pnlMax, err = strconv.ParseFloat(v, 64)
-		if err != nil {
-			fmt.Printf("Warning: Invalid PNL_MAX value '%s', using default 0.0. Error: %v\n", v, err)
-			pnlMax = 0.0
-		}
-	}
-
-	var pnlMin float64
-	if v, ok := os.LookupEnv("PNL_MIN"); ok {
-		var err error
-		pnlMin, err = strconv.ParseFloat(v, 64)
-		if err != nil {
-			fmt.Printf("Warning: Invalid PNL_MIN value '%s', using default 0.0. Error: %v\n", v, err)
-			pnlMin = 0.0
-		}
-	}
-
-	return &Guard{
+	g := &Guard{
 		logger:      zap.NewNop(),
 		cooldownSec: sec,
 		lastAlert:   make(map[string]time.Time),
-		promURL:     promURL,
-		pnlMax:      pnlMax,
-		pnlMin:      pnlMin,
-		pnlMaxSet:   pnlMaxSet,
+		promURL:     os.Getenv("PROM_URL"),
 	}
+
+	if v, ok := os.LookupEnv("PNL_MAX"); ok {
+		g.pnlMaxSet = true
+		var err error
+		g.pnlMax, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			g.logger.Warn("invalid PNL_MAX value, using default", zap.String("value", v), zap.Error(err))
+			g.pnlMax = 0.0
+		}
+	}
+
+	if v, ok := os.LookupEnv("PNL_MIN"); ok {
+		var err error
+		g.pnlMin, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			g.logger.Warn("invalid PNL_MIN value, using default", zap.String("value", v), zap.Error(err))
+			g.pnlMin = 0.0
+		}
+	}
+
+	return g
 }
 
 // SetLogger allows injecting a custom logger for debugging.
@@ -122,7 +114,8 @@ func (g *Guard) checkPnL(bot string) error {
 		zap.String("bot", bot),
 		zap.String("endpoint", endpoint))
 
-	resp, err := http.Get(endpoint)
+	client := http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(endpoint)
 	if err != nil {
 		g.logger.Error("failed to query Prometheus",
 			zap.Error(err),

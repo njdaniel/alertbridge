@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/alpacahq/alpaca-trade-api-go/v3/alpaca"
@@ -38,13 +39,7 @@ func (c *AlpacaClient) SetLogger(logger *zap.Logger) {
 
 // isCrypto determines if a symbol represents a crypto pair
 func isCrypto(symbol string) bool {
-	if len(symbol) >= 3 && symbol[len(symbol)-3:] == "USD" {
-		return true
-	}
-	if len(symbol) >= 4 && (symbol[len(symbol)-4:] == "USDT" || symbol[len(symbol)-4:] == "USDC") {
-		return true
-	}
-	return false
+	return strings.HasSuffix(symbol, "USD") || strings.HasSuffix(symbol, "USDT") || strings.HasSuffix(symbol, "USDC")
 }
 
 func (c *AlpacaClient) CreateOrder(bot, symbol, side, qty string) (*alpaca.Order, error) {

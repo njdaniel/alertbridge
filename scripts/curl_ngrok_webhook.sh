@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Get the current ngrok public HTTPS URL
 ngrok_url() {
-    curl --silent http://127.0.0.1:4040/api/tunnels \
+    curl --fail --silent --show-error http://127.0.0.1:4040/api/tunnels \
         | jq -r '.tunnels[] | select(.proto=="https") | .public_url'
 }
 
@@ -16,9 +16,12 @@ send_webhook() {
         exit 1
     fi
     echo "Sending webhook to: $url"
-    curl -X POST "$url/hook" \
+    if ! curl --fail --silent --show-error -X POST "$url/hook" \
         -H "Content-Type: application/json" \
-        -d '{"bot":"test","symbol":"BTC/USD","side":"buy","qty":"0.0001"}'
+        -d '{"bot":"test","symbol":"BTC/USD","side":"buy","qty":"0.0001"}'; then
+        echo "Webhook request failed" >&2
+        return 1
+    fi
 }
 
 # Example usage

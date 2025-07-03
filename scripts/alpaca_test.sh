@@ -12,9 +12,14 @@ fi
 : "${ALP_BASE:="https://paper-api.alpaca.markets"}"
 
 function get_account() {
-  curl -s -X GET "$ALP_BASE/v2/account" \
+  local response
+  if ! response=$(curl --fail --silent --show-error -X GET "$ALP_BASE/v2/account" \
     -H "APCA-API-KEY-ID: $ALP_KEY" \
-    -H "APCA-API-SECRET-KEY: $ALP_SECRET" | jq
+    -H "APCA-API-SECRET-KEY: $ALP_SECRET"); then
+    echo "Failed to fetch account info" >&2
+    return 1
+  fi
+  echo "$response" | jq
 }
 
 function place_order() {
@@ -25,7 +30,7 @@ function place_order() {
   if [[ $symbol == *"/"* ]]; then
     tif="gtc"
   fi
-  curl -s -X POST "$ALP_BASE/v2/orders" \
+  if ! curl --fail --silent --show-error -X POST "$ALP_BASE/v2/orders" \
     -H "APCA-API-KEY-ID: $ALP_KEY" \
     -H "APCA-API-SECRET-KEY: $ALP_SECRET" \
     -H "Content-Type: application/json" \
@@ -35,7 +40,10 @@ function place_order() {
           --arg side "$side" \
           --arg type "market" \
           --arg tif "$tif" \
-          '{symbol: $symbol, qty: $qty, side: $side, type: $type, time_in_force: $tif}')"
+          '{symbol: $symbol, qty: $qty, side: $side, type: $type, time_in_force: $tif}')"; then
+    echo "Order request failed" >&2
+    return 1
+  fi
 }
 
 # Example usage

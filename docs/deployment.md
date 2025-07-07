@@ -50,6 +50,19 @@ Quick reference for running the stack in different environments.
    Caddy terminates HTTPS and forwards traffic to AlertBridge.
 
 
+### Testing Webhooks
+
+Use the helper script `curl_domain_webhook.sh` to send a test webhook to your
+production deployment. Pass your domain as the first argument:
+
+```bash
+./scripts/curl_domain_webhook.sh example.com
+```
+
+The script posts a sample order to `https://<domain>/hook` so you can verify that
+AlertBridge receives webhooks correctly.
+
+
 ### PROM_URL with HTTPS
 
 AlertBridge can query a Prometheus server for PnL metrics when the `PROM_URL` environment variable is set. For production deployments, configure this endpoint to use TLS and set the variable to the HTTPS URL:
@@ -74,3 +87,4 @@ Alternatively run without building:
 ```bash
 ALP_KEY=your_key ALP_SECRET=your_secret go run ./cmd/alertbridge
 ```
+

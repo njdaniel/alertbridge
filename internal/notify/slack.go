@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -41,31 +42,34 @@ func (s *SlackNotifier) SendMessage(text string) error {
 			return err
 		}
 		defer resp.Body.Close()
-		if resp.StatusCode >= 300 {
-			return errors.New("slack webhook failed")
+		if resp.StatusCode >= http.StatusMultipleChoices {
+			return fmt.Errorf("slack webhook failed: %s", resp.Status)
 		}
 		return nil
 	}
 
-	if s.token != "" {
-		payload := map[string]string{"channel": s.channel, "text": text}
-		b, _ := json.Marshal(payload)
-		req, err := http.NewRequest("POST", slackAPIURL, bytes.NewReader(b))
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+s.token)
-		resp, err := s.client.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode >= 300 {
-			return errors.New("slack api error")
-		}
-		return nil
+	if s.token == "" {
+		return errors.New("no slack configuration provided")
 	}
 
-	return errors.New("no slack configuration provided")
+	payload := map[string]string{"channel": s.channel, "text": text}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", slackAPIURL, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.token)
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("slack api error: %s", resp.Status)
+	}
+	return nil
 }

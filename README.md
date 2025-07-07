@@ -38,6 +38,8 @@ AlertBridge is a headless gateway that receives TradingView (or any bot) webhook
 
 See [`docs/deployment.md`](docs/deployment.md) for Docker, Compose, and environment details (including how to test your deployment using `curl_domain_webhook.sh`).
 
+Set `DEBUG_LOGGING=true` to log full webhook request bodies and client IPs when troubleshooting. Leave it unset or `false` in production to avoid storing sensitive data.
+
 ## Slack Integration
 
 Configure either `SLACK_WEBHOOK_URL` for incoming webhooks or `SLACK_TOKEN` with `chat:write` permissions and `SLACK_CHANNEL` for OAuth-based posting. Optionally set `SLACK_NOTIFY` to control which events are sent (`success`, `failure`). When enabled, AlertBridge will post formatted messages to the specified Slack channel whenever orders succeed or fail. See [docs/slack.md](docs/slack.md) for full setup instructions.
@@ -58,6 +60,10 @@ The `/healthz` endpoint returns `200 OK` and can be used for container liveness 
 
 ## Runbook
 See [docs/runbook.md](docs/runbook.md) for deployment, monitoring, and rollback steps.
+
+## Privacy
+
+See [docs/privacy.md](docs/privacy.md) for information on how webhook payloads are logged, how long logs are kept, and how to request deletion.
 
 ## License
 
